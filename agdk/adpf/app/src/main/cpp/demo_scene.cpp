@@ -104,9 +104,11 @@ void DemoScene::DoFrame() {
   // worse.
   auto constexpr kThrottlingThreshold = 2;
   if (current_thermal_status >= kThrottlingThreshold) {
-    target_frame_period_ = SWAPPY_SWAP_30FPS;
+//    target_frame_period_ = SWAPPY_SWAP_30FPS;
+      target_frame_period_ = SWAPPY_SWAP_60FPS;
   } else {
-    target_frame_period_ = SWAPPY_SWAP_60FPS;
+//    target_frame_period_ = SWAPPY_SWAP_60FPS;
+      target_frame_period_ = SWAPPY_SWAP_90FPS;
   }
 
   // Set FPS in Swappy.
@@ -228,8 +230,17 @@ void DemoScene::RenderPanel() {
              sizeof(thermal_state_label) / sizeof(thermal_state_label[0]));
 
   // Show current FPS target.
-  ImGui::Text("FPS target:%s",
-              target_frame_period_ == SWAPPY_SWAP_60FPS ? "60" : "30");
+//  ImGui::Text("FPS target:%s",
+//              target_frame_period_ == SWAPPY_SWAP_60FPS ? "60" : "30");
+    int32_t fps = 30;
+    if ( target_frame_period_ == SWAPPY_SWAP_90FPS ) {
+        fps = 90;
+    } else if ( target_frame_period_ == SWAPPY_SWAP_60FPS ) {
+        fps = 60;
+    } else {
+        fps = 30;
+    }
+    ImGui::Text("FPS target:%d", fps);
 
   // Show current thermal state on screen.
   ImGui::Text("Thermal State:%s", thermal_state_label[thermal_state]);
@@ -327,7 +338,7 @@ void DemoScene::UpdatePhysics() {
   // throttling status easily.
   // In the future version of the sample, this part will be update to
   // dynamically adjust the load.
-  auto max_steps = 8;
+  auto max_steps = 16;
   for (auto steps = 0; steps < max_steps; ++steps) {
     dynamics_world_->stepSimulation(1.f / (60.f * max_steps), 10);
   }

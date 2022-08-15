@@ -58,12 +58,16 @@ class DemoScene : public Scene {
 
  private:
   // # of cubes managed in bullet physics.
-  static constexpr int32_t kArraySizeX = 6;
-  static constexpr int32_t kArraySizeY = 6;
-  static constexpr int32_t kArraySizeZ = 6;
+//  static constexpr int32_t kArraySizeX = 6;
+//  static constexpr int32_t kArraySizeY = 6;
+//  static constexpr int32_t kArraySizeZ = 6;
+    static constexpr int32_t kArraySizeX = 12;
+    static constexpr int32_t kArraySizeY = 12;
+    static constexpr int32_t kArraySizeZ = 12;
 
   // Size of the box in the bullet physics.
-  static constexpr float kBoxSize = 1.0f;
+//  static constexpr float kBoxSize = 1.0f;
+    static constexpr float kBoxSize = 1.0f;
 
   // must be implemented by subclass
 
