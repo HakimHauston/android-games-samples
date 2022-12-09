@@ -17,13 +17,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 33
+    compileSdkVersion 31
     ndkVersion '25.0.8775105'
 
     defaultConfig {
         applicationId 'com.android.example.games.game_mode_sample'
-        minSdkVersion 33
-        targetSdkVersion 33
+        minSdkVersion 31
+        targetSdkVersion 31
         versionCode     1
         versionName    '1.0'
         externalNativeBuild {
