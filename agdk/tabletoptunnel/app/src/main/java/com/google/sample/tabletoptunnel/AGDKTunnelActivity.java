@@ -19,6 +19,7 @@ import static android.view.inputmethod.EditorInfo.IME_ACTION_NONE;
 import static android.view.inputmethod.EditorInfo.IME_FLAG_NO_FULLSCREEN;
 
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
@@ -68,6 +69,7 @@ public class AGDKTunnelActivity extends GameActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, TAG + ".onCreate");
         baseGameFrameworkUtils = new BaseGameFrameworkUtils(this);
         baseGameFrameworkUtils.Initialize();
 
@@ -96,6 +98,7 @@ public class AGDKTunnelActivity extends GameActivity {
 
     @Override
     protected void onDestroy() {
+        Log.d(TAG, TAG + ".onDestroy");
         if (isGooglePlayGames()) {
             InputMappingClient inputMappingClient = Input.getInputMappingClient(this);
             inputMappingClient.clearInputMappingProvider();
@@ -106,14 +109,50 @@ public class AGDKTunnelActivity extends GameActivity {
     }
 
     @Override
+    protected void onStart() {
+        Log.d(TAG, TAG + ".onStart");
+
+        super.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        Log.d(TAG, TAG + ".onStop");
+
+        super.onStop();
+    }
+
+    @Override
+    protected void onPause() {
+        Log.d(TAG, TAG + ".onPause");
+
+        super.onPause();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
+
+        Log.d(TAG, TAG + ".onResume");
 
         // To learn best practices to handle lifecycle events visit
         // https://developer.android.com/topic/libraries/architecture/lifecycle
         if (isPlayGamesServicesLinked()) {
             mPGSManager.onResume();
         }
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        Log.d(TAG, TAG + ".onWindowFocusChanged " + hasFocus);
+        super.onWindowFocusChanged(hasFocus);
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        Log.d(TAG, TAG + ".onConfigurationChanged " + newConfig.toString());
     }
 
     private void hideSystemUI() {
