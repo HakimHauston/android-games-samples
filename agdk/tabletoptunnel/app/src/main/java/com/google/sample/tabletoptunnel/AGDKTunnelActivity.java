@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.sample.agdktunnel;
+package com.google.sample.tabletoptunnel;
 
 import static android.view.inputmethod.EditorInfo.IME_ACTION_NONE;
 import static android.view.inputmethod.EditorInfo.IME_FLAG_NO_FULLSCREEN;
@@ -59,11 +59,11 @@ public class AGDKTunnelActivity extends GameActivity {
 
         // Optional: reload the native library.
         // However this is necessary when any of the following happens:
-        //     - agdktunnel library is not configured to the following line in the manifest:
-        //        <meta-data android:name="android.app.lib_name" android:value="agdktunnel" />
+        //     - tabletoptunnel library is not configured to the following line in the manifest:
+        //        <meta-data android:name="android.app.lib_name" android:value="tabletoptunnel" />
         //     - GameActivity derived class calls to the native code before calling
         //       the super.onCreate() function.
-        System.loadLibrary("agdktunnel");
+        System.loadLibrary("tabletoptunnel");
     }
 
     @Override

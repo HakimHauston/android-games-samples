@@ -31,7 +31,7 @@ android {
     ndkVersion '26.1.10909125'
 
     defaultConfig {
-        applicationId 'com.google.sample.agdktunnel'
+        applicationId 'com.google.sample.tabletoptunnel'
         minSdkVersion 24
         targetSdkVersion 33
         versionCode     10
@@ -92,7 +92,7 @@ android {
             enableSplit true
         }
     }
-    namespace 'com.google.sample.agdktunnel'
+    namespace 'com.google.sample.tabletoptunnel'
     lint {
         abortOnError false
     }

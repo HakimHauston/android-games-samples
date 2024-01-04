@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.sample.agdktunnel;
+package com.google.sample.tabletoptunnel;
 
 import static com.google.android.libraries.play.games.inputmapping.datamodel.InputEnums.REMAP_OPTION_ENABLED;
 import static com.google.android.libraries.play.games.inputmapping.datamodel.InputEnums.REMAP_OPTION_DISABLED;

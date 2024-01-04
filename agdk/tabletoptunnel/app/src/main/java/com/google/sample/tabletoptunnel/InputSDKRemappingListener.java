@@ -1,4 +1,4 @@
-package com.google.sample.agdktunnel;
+package com.google.sample.tabletoptunnel;
 
 import android.util.Log;
 
