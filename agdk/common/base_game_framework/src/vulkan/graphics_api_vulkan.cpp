@@ -695,6 +695,11 @@ bool GraphicsAPIVulkan::GetSwapchainFrameResourcesVk(
                           BGM_CLASS_TAG,
                           "vkAcquireNextImageKHR returned VK_ERROR_OUT_OF_DATE_KHR");
         return false;
+      } else if ( result == VK_ERROR_SURFACE_LOST_KHR ) {
+        DebugManager::Log(DebugManager::kLog_Channel_Default,
+                          DebugManager::kLog_Level_Error,
+                          BGM_CLASS_TAG,
+                          "vkAcquireNextImageKHR Lost? failed: %d", result);
       } else if (!(result == VK_SUCCESS || result == VK_SUBOPTIMAL_KHR)) {
         DebugManager::Log(DebugManager::kLog_Channel_Default,
                           DebugManager::kLog_Level_Error,
@@ -845,7 +850,7 @@ void GraphicsAPIVulkan::DestroyDevice() {
 void GraphicsAPIVulkan::CreateInstance(bool is_preflight_check) {
   // Skip validation layers if we are just creating a preflight instance to query
   // device extensions and capabilities
-  const bool request_validation = !is_preflight_check && enable_validation_layers_;
+  const bool request_validation = true;// !is_preflight_check && enable_validation_layers_;
 
   const std::vector<const char *> instance_extensions =
       PlatformUtilVulkan::GetRequiredInstanceExtensions(request_validation,
@@ -880,6 +885,12 @@ void GraphicsAPIVulkan::CreateInstance(bool is_preflight_check) {
       }
     ));
   }
+
+  int iLayerCount = sizeof(layers) / sizeof(layers[0]);
+  DebugManager::Log(DebugManager::kLog_Channel_Default,
+                      DebugManager::kLog_Level_Info,
+                      BGM_CLASS_TAG,
+                      "LSF enabledLayerCount: %d", iLayerCount);
 
   VkInstanceCreateInfo create_info{};
   create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
