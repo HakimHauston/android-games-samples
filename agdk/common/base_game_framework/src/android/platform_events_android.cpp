@@ -24,6 +24,12 @@
 #include "system_event_manager.h"
 #include "user_input_manager.h"
 
+#include "common.hpp"
+#include "Log.h"
+
+// #define DEBUG_APP_CMD(...)
+#define DEBUG_APP_CMD ALOGI
+
 namespace base_game_framework {
 
 // enums from NativeAppGlueAppCmd in android_native_app_glue.h
@@ -52,6 +58,8 @@ void PlatformEventAndroid::ProcessApplicationEvent(struct android_app *app, int3
   if (cmd >= UNUSED_APP_CMD_INPUT_CHANGED && cmd <= APP_CMD_WINDOW_INSETS_CHANGED) {
     cmdString = kGlueCommandStrings[cmd];
   }
+
+  DEBUG_APP_CMD("LSF ProcessApplicationEvent %d: %s", cmd, cmdString);
 
   DebugManager::Log(DebugManager::kLog_Channel_Default,
                     DebugManager::kLog_Level_Debug,
