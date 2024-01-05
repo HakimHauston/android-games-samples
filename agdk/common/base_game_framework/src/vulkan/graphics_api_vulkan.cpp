@@ -859,12 +859,36 @@ void GraphicsAPIVulkan::CreateInstance(bool is_preflight_check) {
   app_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
   app_info.apiVersion = PlatformUtilVulkan::GetVulkanApiVersion();
 
+  // Enable Validation Layer
+  // Enable just the Khronos validation layer.
+  static const char *layers[] = {"VK_LAYER_KHRONOS_validation"};
+
+  // Get the layer count using a null pointer as the last parameter.
+  uint32_t instance_layer_present_count = 0;
+  vkEnumerateInstanceLayerProperties(&instance_layer_present_count, nullptr);
+
+  // Enumerate layers with a valid pointer in the last parameter.
+  VkLayerProperties layer_props[instance_layer_present_count];
+  vkEnumerateInstanceLayerProperties(&instance_layer_present_count, layer_props);
+
+  // Make sure selected validation layers are available.
+  VkLayerProperties *layer_props_end = layer_props + instance_layer_present_count;
+  for (const char* layer:layers) {
+    assert(layer_props_end !=
+      std::find_if(layer_props, layer_props_end, [layer](VkLayerProperties layerProperties) {
+        return strcmp(layerProperties.layerName, layer) == 0;
+      }
+    ));
+  }
+
   VkInstanceCreateInfo create_info{};
   create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
   create_info.pApplicationInfo = &app_info;
   create_info.enabledExtensionCount = static_cast<uint32_t>(instance_extensions.size());
   create_info.ppEnabledExtensionNames = instance_extensions.data();
   create_info.pApplicationInfo = &app_info;
+  create_info.enabledLayerCount = sizeof(layers) / sizeof(layers[0]); // requesting all enabled layers or extensions
+  create_info.ppEnabledLayerNames = layers;                           // available on the system
 
   const std::vector<const char *> validation_layers =
       PlatformUtilVulkan::GetValidationLayers();
