@@ -25,7 +25,7 @@ using namespace simple_renderer;
 
 SimpleGeom *AsciiArtToGeom(const char *art, float scale) {
   // figure out width and height
-  ALOGI("Creating geometry from ASCII art.");
+  GEOM_DEBUG("Creating geometry from ASCII art.");
   GEOM_DEBUG("Ascii art source:\n%s", art);
   int rows = 1;
   int curCols = 0, cols = 0;
@@ -168,7 +168,7 @@ SimpleGeom *AsciiArtToGeom(const char *art, float scale) {
         start_c += col_dir;
         start_r += row_dir;
         if (start_c < 0 || start_r < 0 || start_c >= cols || start_r >= rows) {
-          ALOGE("Invalid line in ascii-art: no start. At position %d,%d", r, c);
+          GEOM_DEBUG("Invalid line in ascii-art: no start. At position %d,%d", r, c);
           ABORT_GAME;
         }
       }
@@ -182,7 +182,7 @@ SimpleGeom *AsciiArtToGeom(const char *art, float scale) {
         end_c -= col_dir;
         end_r -= row_dir;
         if (end_c < 0 || end_r < 0 || end_c >= cols || end_r >= rows) {
-          ALOGE("Invalid line in ascii-art: no end. At position %d,%d", r, c);
+          GEOM_DEBUG("Invalid line in ascii-art: no end. At position %d,%d", r, c);
           ABORT_GAME;
         }
       }
@@ -237,7 +237,7 @@ SimpleGeom *AsciiArtToGeom(const char *art, float scale) {
   delete[] indicesArray;
   indicesArray = NULL;
 
-  ALOGI("Created geometry from ascii art: %d vertices, %d indices", vertices, indices);
+  GEOM_DEBUG("Created geometry from ascii art: %d vertices, %d indices", vertices, indices);
 
   return out;
 }

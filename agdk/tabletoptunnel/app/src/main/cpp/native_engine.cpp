@@ -356,6 +356,7 @@ bool NativeEngine::ProcessCookedEvent(struct CookedEvent *event) {
 // BaseGameFramework callbacks
 void NativeEngine::SwapchainChanged(const DisplayManager::SwapchainChangeMessage reason,
                                     void* user_data) {
+    ALOGI("LSF NativeEngine::SwapchainChanged reason: %d", reason);
     if (reason == DisplayManager::kSwapchain_Gained_Window) {
         mHasSwapchain = true;
     } else if (reason == DisplayManager::kSwapchain_Lost_Window) {

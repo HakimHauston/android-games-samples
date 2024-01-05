@@ -19,6 +19,8 @@
 #include "graphics_api_vulkan_utils.h"
 #include "platform_util_vulkan.h"
 
+#include "common.hpp"
+
 namespace base_game_framework {
 
 static constexpr DisplayManager::SwapchainFrameHandle kDefault_swapchain_handle = 1;
@@ -684,6 +686,7 @@ bool GraphicsAPIVulkan::GetSwapchainFrameResourcesVk(
                                               swapchain_image_semaphore_[swapchain_info_.swapchain_current_frame_index_],
                                               VK_NULL_HANDLE,
                                               &swapchain_info_.swapchain_current_image_index_);
+      ALOGI("LSF vkAcquireNextImageKHR result: %d", result);
       if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         RecreateSwapchain();
 
