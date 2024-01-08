@@ -18,6 +18,8 @@
 #include "basegameframework_init.h"
 #include "tunnel_engine.hpp"
 
+#include "Log.h"
+
 extern "C" {
     void android_main(struct android_app *app);
 };
@@ -28,10 +30,12 @@ extern "C" {
 */
 
 void android_main(struct android_app *app) {
+    ALOGI("LSF android_main starting");
     PlatformInitParameters init_params{app};
     BaseGameFramework_Init(init_params);
     TunnelEngine *engine = new TunnelEngine(app);
     engine->GameLoop();
     delete engine;
     BaseGameFramework_Destroy();
+    ALOGI("LSF android_main quitting");
 }

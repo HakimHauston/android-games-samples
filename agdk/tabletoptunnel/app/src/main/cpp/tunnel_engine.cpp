@@ -128,17 +128,28 @@ TunnelEngine::~TunnelEngine() {
 
 void TunnelEngine::GameLoop() {
   while (!mQuitting) {
-    // bool bIsAnimating = IsAnimating();
-    // ALOGI("LSF GameLoop displayInitialized: %d isAnimating: %d hasFocus: %d hasStarted: %d hasSwapChain: %d", mDisplayInitialized, bIsAnimating, mHasFocus, mHasStarted, mHasSwapchain);
+
+    PlatformEventLoop::GetInstance().PollEvents();
+
+    bool bIsAnimating = IsAnimating();
+    static int iCount = 0;
+    iCount++;
+    if ( iCount >= 600 ) {
+      iCount = 0;
+      // ALOGI("LSF GameLoop displayInitialized: %d isAnimating: %d hasFocus: %d hasStarted: %d hasSwapChain: %d", mDisplayInitialized, bIsAnimating, mHasFocus, mHasStarted, mHasSwapchain);
+    }
+    if ( !mHasStarted ) {
+      continue;
+    }
     if (!mDisplayInitialized) {
-      PlatformEventLoop::GetInstance().PollEvents();
+      // PlatformEventLoop::GetInstance().PollEvents();
       if (mApp->window == NULL || !AttemptDisplayInitialization()) {
         usleep(1000);
         continue;
       }
-      mHasStarted = true;
+      // mHasStarted = true;
     } else {
-      PlatformEventLoop::GetInstance().PollEvents();
+      // PlatformEventLoop::GetInstance().PollEvents();
       PollGameController();
       mGameAssetManager->UpdateGameAssetManager();
       if (mApp->textInputState) {

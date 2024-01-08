@@ -399,23 +399,36 @@ void NativeEngine::FocusEvent(const SystemEventManager::FocusEvent focus_event, 
 
 void NativeEngine::LifecycleEvent(const SystemEventManager::LifecycleEvent lifecycle_event,
                                   void *user_data) {
+    ALOGI("LSF NativeEngine::LifecycleEvent %d", lifecycle_event);
     switch (lifecycle_event) {
         case SystemEventManager::kLifecycleStart:
+        ALOGW("LSF NativeEngine::LifecycleEvent kLifecycleStart");
         break;
         case SystemEventManager::kLifecycleResume:
+            ALOGW("LSF NativeEngine::LifecycleEvent kLifecycleResume");
             SceneManager::GetInstance()->OnResume();
+            mHasStarted = true;
         break;
         case SystemEventManager::kLifecyclePause:
+            ALOGW("LSF NativeEngine::LifecycleEvent kLifecyclePause");
             SceneManager::GetInstance()->OnPause();
         break;
         case SystemEventManager::kLifecycleStop:
+            ALOGW("LSF NativeEngine::LifecycleEvent kLifecycleStop");
             mHasStarted = false;
+            mDisplayInitialized = false; // HAKIM
+            DisplayManager::GetInstance().ShutdownSwapchain(mSwapchainHandle);
+            DisplayManager::GetInstance().ShutdownGraphicsAPI();
+            DisplayManager::ShutdownInstance();
         break;
         case SystemEventManager::kLifecycleQuit:
+            ALOGW("LSF NativeEngine::LifecycleEvent kLifecycleQuit");
             mQuitting = true;
+
         break;
         case SystemEventManager::kLifecycleSaveState:
         {
+            ALOGW("LSF NativeEngine::LifecycleEvent kLifecycleSaveState");
             SystemEventManager::SaveState save_state {reinterpret_cast<void*>(&mState),
                                                       sizeof(mState)};
             SystemEventManager::GetInstance().WriteSaveState(save_state);
