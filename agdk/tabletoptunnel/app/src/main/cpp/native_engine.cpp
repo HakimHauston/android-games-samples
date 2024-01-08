@@ -36,7 +36,8 @@ using namespace base_game_framework;
 #endif
 
 // Set to true to force GLES always
-static bool s_disable_vulkan = false;
+// static bool s_disable_vulkan = false;
+static bool s_disable_vulkan = true;
 
 // workaround for internal bug b/149866792
 static NativeEngineSavedState appState = {false};
