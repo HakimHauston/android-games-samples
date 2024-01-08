@@ -128,8 +128,8 @@ TunnelEngine::~TunnelEngine() {
 
 void TunnelEngine::GameLoop() {
   while (!mQuitting) {
-    // bool bIsAnimating = IsAnimating();
-    // ALOGI("LSF GameLoop displayInitialized: %d isAnimating: %d hasFocus: %d hasStarted: %d hasSwapChain: %d", mDisplayInitialized, bIsAnimating, mHasFocus, mHasStarted, mHasSwapchain);
+    bool bIsAnimating = IsAnimating();
+    ALOGI("LSF GameLoop displayInitialized: %d isAnimating: %d hasFocus: %d hasStarted: %d hasSwapChain: %d", mDisplayInitialized, bIsAnimating, mHasFocus, mHasStarted, mHasSwapchain);
     if (!mDisplayInitialized) {
       PlatformEventLoop::GetInstance().PollEvents();
       if (mApp->window == NULL || !AttemptDisplayInitialization()) {

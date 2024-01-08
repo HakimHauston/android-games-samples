@@ -404,6 +404,7 @@ void NativeEngine::LifecycleEvent(const SystemEventManager::LifecycleEvent lifec
         break;
         case SystemEventManager::kLifecycleResume:
             SceneManager::GetInstance()->OnResume();
+            mHasStarted = true;
         break;
         case SystemEventManager::kLifecyclePause:
             SceneManager::GetInstance()->OnPause();
