@@ -97,7 +97,7 @@ NativeEngine::~NativeEngine() {
 }
 
 bool NativeEngine::IsAnimating() {
-    return mHasFocus && mHasStarted && mHasSwapchain;
+    return /* mHasFocus && */ mHasStarted && mHasSwapchain;
 }
 
 void NativeEngine::GameLoop() {
