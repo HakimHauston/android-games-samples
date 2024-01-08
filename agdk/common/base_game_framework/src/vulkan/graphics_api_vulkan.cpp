@@ -686,7 +686,7 @@ bool GraphicsAPIVulkan::GetSwapchainFrameResourcesVk(
                                               swapchain_image_semaphore_[swapchain_info_.swapchain_current_frame_index_],
                                               VK_NULL_HANDLE,
                                               &swapchain_info_.swapchain_current_image_index_);
-      ALOGI("LSF vkAcquireNextImageKHR result: %d", result);
+      // ALOGI("LSF vkAcquireNextImageKHR result: %d", result);
       if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         RecreateSwapchain();
 
@@ -696,10 +696,13 @@ bool GraphicsAPIVulkan::GetSwapchainFrameResourcesVk(
                           "vkAcquireNextImageKHR returned VK_ERROR_OUT_OF_DATE_KHR");
         return false;
       } else if ( result == VK_ERROR_SURFACE_LOST_KHR ) {
+        RecreateSwapchain();
+
         DebugManager::Log(DebugManager::kLog_Channel_Default,
                           DebugManager::kLog_Level_Error,
                           BGM_CLASS_TAG,
                           "vkAcquireNextImageKHR Lost? failed: %d", result);
+        return false;
       } else if (!(result == VK_SUCCESS || result == VK_SUBOPTIMAL_KHR)) {
         DebugManager::Log(DebugManager::kLog_Channel_Default,
                           DebugManager::kLog_Level_Error,
@@ -762,6 +765,14 @@ void GraphicsAPIVulkan::SwapchainChanged(const DisplayManager::SwapchainChangeMe
   if (swapchain_changed_callback_ != nullptr) {
     swapchain_changed_callback_(message, swapchain_changed_user_data_);
   }
+
+  // + HAKIM
+  // if ( message == DisplayManager::SwapchainChangeMessage::kSwapchain_Lost_Window ) {
+  //   DestroyDevice();
+  // } else if ( message == DisplayManager::SwapchainChangeMessage::kSwapchain_Gained_Window ) {
+  //   InitializeGraphicsAPI();
+  // }
+  // - HAKIM
 }
 
 bool GraphicsAPIVulkan::CreateDevice(bool is_preflight_check,
