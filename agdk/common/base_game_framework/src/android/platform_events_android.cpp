@@ -87,6 +87,8 @@ void PlatformEventAndroid::ProcessApplicationEvent(struct android_app *app, int3
     }
       break;
     case APP_CMD_WINDOW_RESIZED: {
+      ARect newRect = app->contentRect;
+      ALOGI("LSF PlatformEventAndroid::ProcessApplicationEvent APP_CMD_WINDOW_RESIZED rect: (%d, %d) -> (%d, %d)", newRect.left, newRect.top, newRect.right, newRect.bottom);
       DisplayManager::GetInstance().HandlePlatformDisplayChange(
           DisplayManager::kDisplay_Change_Window_Resized);
     }

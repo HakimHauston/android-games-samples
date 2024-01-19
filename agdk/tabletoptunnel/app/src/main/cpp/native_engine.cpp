@@ -369,6 +369,7 @@ void NativeEngine::SwapchainChanged(const DisplayManager::SwapchainChangeMessage
 
 void NativeEngine::DisplayResolutionChanged(const DisplayManager::DisplayChangeInfo
                               &display_change_info, void *user_data) {
+    ALOGI("LSF NativeEngine::DisplayResolutionChanged %d (%d, %d)", display_change_info.change_message, display_change_info.display_resolution.display_width, display_change_info.display_resolution.display_height);
     if (display_change_info.change_message == DisplayManager::kDisplay_Change_Window_Resized) {
         const int32_t width = display_change_info.display_resolution.display_width;
         const int32_t height = display_change_info.display_resolution.display_height;
@@ -479,4 +480,24 @@ bool NativeEngine::TouchEventCallback(const TouchEvent &touch_event, void *user_
     ALOGI("LSF NativeEngine::TouchEventCallback (%f, %f) [%f, %f]", cooked_event.motionX, cooked_event.motionY, cooked_event.motionMaxX, cooked_event.motionMaxY);
     ProcessCookedEvent(&cooked_event);
     return true;
+}
+
+/**
+ *  TODO: hardcoded for testing
+ *   
+ *  discuss with Nate how to arrange the callback to call properly
+ *  -. put in lifecycle callback
+ *  -. get DisplayChangedCallback to do it
+ *  -. or get HandlePlatformDisplayChange to do it
+ *
+ *  Also, need to discuss recalculating the position & size for all the widgets
+ */
+void NativeEngine::PlatformWindowResize(int left, int top, int right, int bottom) {
+    ALOGI("LSF NativeEngine::PlatformWindowResize (%d, %d) -> (%d, %d)", left, top, right, bottom);
+    int width = right - left;
+    int height = bottom - top;
+    mSurfWidth = width;
+    mSurfHeight = height;
+    SceneManager::GetInstance()->SetScreenSize(mSurfWidth, mSurfHeight);
+    ScreenSizeChanged();
 }

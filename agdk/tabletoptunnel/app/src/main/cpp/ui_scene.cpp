@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+#include "common.hpp"
+#include "Log.h"
+
 #include "ui_scene.hpp"
 
 #include "data/strings.inl"
@@ -196,6 +199,8 @@ void UiScene::OnPointerUp(int /*pointerId*/, const struct PointerCoords *coords)
 
     mPointerDown = false;
     UpdateTouchFocus(coords);
+
+    ALOGI("LSF UiScene::OnPointerUp (%f, %f), Focus Widget: %d", coords->x, coords->y, mFocusWidget);
 
     if (mFocusWidget >= 0 && mWidgets[mFocusWidget]->IsButton()) {
         DispatchButtonClick(mFocusWidget);

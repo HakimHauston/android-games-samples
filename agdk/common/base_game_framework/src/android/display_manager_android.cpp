@@ -17,6 +17,12 @@
 #include "display_manager.h"
 #include "gles/graphics_api_gles.h"
 
+#include "common.hpp"
+#include "Log.h"
+
+#include "native_engine.hpp"
+#include "platform_util_android.h"
+
 namespace base_game_framework {
 
 void DisplayManager::HandlePlatformDisplayChange(const DisplayChangeMessage& change_message) {
@@ -37,6 +43,15 @@ void DisplayManager::HandlePlatformDisplayChange(const DisplayChangeMessage& cha
       // api_->SwapchainChanged(kSwapchain_Needs_Recreation);
     } else if (change_message == kDisplay_Change_Window_Resized) {
       // TODO: resize render buffer
+      android_app *app = PlatformUtilAndroid::GetAndroidApp();
+      ARect newRect = app->contentRect;
+      ALOGI("LSF DisplayManager::HandlePlatformDisplayChange APP_CMD_WINDOW_RESIZED rect: (%d, %d) -> (%d, %d)", newRect.left, newRect.top, newRect.right, newRect.bottom);
+      NativeEngine::GetInstance()->PlatformWindowResize(newRect.left, newRect.top, newRect.right, newRect.bottom);
+    } else if (change_message == kDisplay_Change_Window_Content_Rect_Changed ) {
+      // TODO
+      android_app *app = PlatformUtilAndroid::GetAndroidApp();
+      ARect newRect = app->contentRect;
+      ALOGI("LSF DisplayManager::HandlePlatformDisplayChange APP_CMD_CONTENT_RECT_CHANGED rect: (%d, %d) -> (%d, %d)", newRect.left, newRect.top, newRect.right, newRect.bottom);
     }
   }
 }

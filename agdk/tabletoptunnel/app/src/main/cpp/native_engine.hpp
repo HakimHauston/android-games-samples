@@ -56,6 +56,8 @@ public:
     // This is the env for the app thread. It's different to the main thread.
     JNIEnv *GetAppJniEnv();
 
+    void PlatformWindowResize(int left, int top, int right, int bottom);
+
 protected:
     bool ProcessCookedEvent(struct CookedEvent *event);
 
