@@ -476,6 +476,7 @@ bool NativeEngine::TouchEventCallback(const TouchEvent &touch_event, void *user_
     cooked_event.motionMaxX = SceneManager::GetInstance()->GetScreenWidth();
     cooked_event.motionMinY = 0.0f;
     cooked_event.motionMaxY = SceneManager::GetInstance()->GetScreenHeight();
+    ALOGI("LSF NativeEngine::TouchEventCallback (%f, %f) [%f, %f]", cooked_event.motionX, cooked_event.motionY, cooked_event.motionMaxX, cooked_event.motionMaxY);
     ProcessCookedEvent(&cooked_event);
     return true;
 }

@@ -97,6 +97,8 @@ void PlatformEventAndroid::ProcessApplicationEvent(struct android_app *app, int3
     }
       break;
     case APP_CMD_CONTENT_RECT_CHANGED: {
+      ARect newRect = app->contentRect;
+      ALOGI("LSF PlatformEventAndroid::ProcessApplicationEvent APP_CMD_CONTENT_RECT_CHANGED rect: (%d, %d) -> (%d, %d)", newRect.left, newRect.top, newRect.right, newRect.bottom);
       DisplayManager::GetInstance().HandlePlatformDisplayChange(
           DisplayManager::kDisplay_Change_Window_Content_Rect_Changed);
     }

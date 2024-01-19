@@ -84,9 +84,11 @@ OwnedGameTextInputState &OwnedGameTextInputState::operator=(const GameTextInputS
 }
 
 WelcomeScene::WelcomeScene() : mTextInputState(INITIAL_NAME) {
+    ALOGI("LSF WelcomeScene::WelcomeScene");
 }
 
 WelcomeScene::~WelcomeScene() {
+    ALOGI("LSF WelcomeScene::~WelcomeScene");
 }
 
 void WelcomeScene::RenderBackground() {
@@ -98,6 +100,7 @@ void WelcomeScene::RenderBackground() {
 static std::string sAboutStartText;
 
 void WelcomeScene::InitAboutText(JNIEnv* env, jobject context) {
+    ALOGI("LSF WelcomeScene::InitAboutText");
     std::stringstream aboutStream;
     aboutStream << BLURB_ABOUT;
     std::string versionName;
@@ -110,6 +113,7 @@ void WelcomeScene::InitAboutText(JNIEnv* env, jobject context) {
 }
 
 std::string WelcomeScene::AboutMessage() {
+    ALOGI("LSF WelcomeScene::AboutMessage");
     std::stringstream aboutStream;
     aboutStream << sAboutStartText;
     // Add window insets to help debugging
@@ -130,6 +134,8 @@ std::string WelcomeScene::AboutMessage() {
 
 void WelcomeScene::OnButtonClicked(int id) {
     SceneManager *mgr = SceneManager::GetInstance();
+
+    ALOGI("LSF WelcomeScene::OnButtonClicked %d", id);
 
     if (id == mPlayButtonId) {
         DataLoaderStateMachine *dataStateMachine =
@@ -165,6 +171,7 @@ void WelcomeScene::OnButtonClicked(int id) {
 }
 
 void WelcomeScene::OnTextInput() {
+    ALOGI("LSF WelcomeScene::OnTextInput");
     auto activity = NativeEngine::GetInstance()->GetAndroidApp()->activity;
     GameActivity_getTextInputState(activity, [](void *context, const GameTextInputState *state) {
         auto thiz = static_cast<WelcomeScene *>(context);
@@ -192,6 +199,7 @@ void WelcomeScene::DoFrame() {
 }
 
 void WelcomeScene::UpdateWidgetStates() {
+    // ALOGI("LSF WelcomeScene::UpdateWidgetStates");
     // Build navigation
     AddNav(mPlayButtonId, UI_DIR_UP, mNameEdit->GetId());
     AddNav(mPlayButtonId, UI_DIR_RIGHT, mAboutButtonId);
@@ -217,6 +225,8 @@ void WelcomeScene::UpdateWidgetStates() {
 
 void WelcomeScene::OnStartGraphics() {
     UiScene::OnStartGraphics();
+
+    ALOGI("LSF WelcomeScene::OnStartGraphics");
 }
 
 void WelcomeScene::OnCreateWidgets() {
@@ -224,6 +234,8 @@ void WelcomeScene::OnCreateWidgets() {
     // create widgets
     float maxX = SceneManager::GetInstance()->GetScreenAspect();
     float center = 0.5f * maxX;
+
+    ALOGI("LSF WelcomeScene::OnCreateWidgets maxX = %f", maxX);
 
     // create the static title
     NewWidget()->SetText(S_TITLE)->SetCenter(TITLE_POS)->SetTextColor(TITLE_COLOR)
@@ -274,4 +286,6 @@ void WelcomeScene::OnCreateWidgets() {
 
 void WelcomeScene::OnKillGraphics() {
     UiScene::OnKillGraphics();
+
+    ALOGI("LSF WelcomeScene::OnKillGraphics");
 }
