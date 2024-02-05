@@ -493,7 +493,9 @@ bool NativeEngine::TouchEventCallback(const TouchEvent &touch_event, void *user_
  *  Also, need to discuss recalculating the position & size for all the widgets
  */
 void NativeEngine::PlatformWindowResize(int left, int top, int right, int bottom) {
-    ALOGI("LSF NativeEngine::PlatformWindowResize (%d, %d) -> (%d, %d)", left, top, right, bottom);
+    int oldWidth = SceneManager::GetInstance()->GetScreenWidth();
+    int oldHeight = SceneManager::GetInstance()->GetScreenHeight();
+    ALOGI("LSF NativeEngine::PlatformWindowResize [%d, %d] => (%d, %d) x (%d, %d)", oldWidth, oldHeight, left, top, right, bottom);
     int width = right - left;
     int height = bottom - top;
     mSurfWidth = width;
