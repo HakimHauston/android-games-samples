@@ -34,6 +34,15 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintSet;
+import androidx.lifecycle.Lifecycle;
+import androidx.window.layout.DisplayFeature;
+import androidx.window.layout.FoldingFeature;
+import androidx.window.layout.WindowInfoTracker;
+import androidx.window.layout.WindowLayoutInfo;
+import androidx.window.layout.WindowMetricsCalculator;
+
 import com.google.android.games.basegameframework.BaseGameFrameworkUtils;
 import com.google.androidgamesdk.GameActivity;
 import com.google.android.libraries.play.games.inputmapping.InputMappingClient;
@@ -47,6 +56,8 @@ public class AGDKTunnelActivity extends GameActivity {
     private final String mPlayGamesPCSystemFeature =
             "com.google.android.play.feature.HPE_EXPERIENCE";
     private static final String TAG = "AGDKTunnelActivity";
+
+    private WindowInfoTracker windowInfoTracker;
 
     // Some code to load our native library:
     static {
@@ -94,6 +105,18 @@ public class AGDKTunnelActivity extends GameActivity {
             inputMappingClient.registerRemappingListener(new InputSDKRemappingListener());
             inputMappingClient.setInputMappingProvider(inputMappingProvider);
         }
+
+        windowInfoTracker = WindowInfoTracker.getOrCreate(this);
+        obtainWindowMetrics();
+        onWindowLayoutInfoChange();
+    }
+
+    private void obtainWindowMetrics() {
+
+    }
+
+    private void onWindowLayoutInfoChange() {
+
     }
 
     @Override
