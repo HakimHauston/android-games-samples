@@ -18,18 +18,22 @@ package com.google.sample.tabletoptunnel;
 import static android.view.inputmethod.EditorInfo.IME_ACTION_NONE;
 import static android.view.inputmethod.EditorInfo.IME_FLAG_NO_FULLSCREEN;
 
+import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager.LayoutParams;
 
 import androidx.annotation.Keep;
+import androidx.core.util.Consumer;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
@@ -37,10 +41,12 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.lifecycle.Lifecycle;
+import androidx.window.java.layout.WindowInfoTrackerCallbackAdapter;
 import androidx.window.layout.DisplayFeature;
 import androidx.window.layout.FoldingFeature;
 import androidx.window.layout.WindowInfoTracker;
 import androidx.window.layout.WindowLayoutInfo;
+import androidx.window.layout.WindowMetrics;
 import androidx.window.layout.WindowMetricsCalculator;
 
 import com.google.android.games.basegameframework.BaseGameFrameworkUtils;
@@ -48,6 +54,9 @@ import com.google.androidgamesdk.GameActivity;
 import com.google.android.libraries.play.games.inputmapping.InputMappingClient;
 import com.google.android.libraries.play.games.inputmapping.InputMappingProvider;
 import com.google.android.libraries.play.games.inputmapping.Input;
+
+import java.util.List;
+import java.util.concurrent.Executor;
 
 @Keep
 public class AGDKTunnelActivity extends GameActivity {
@@ -57,7 +66,11 @@ public class AGDKTunnelActivity extends GameActivity {
             "com.google.android.play.feature.HPE_EXPERIENCE";
     private static final String TAG = "AGDKTunnelActivity";
 
-    private WindowInfoTracker windowInfoTracker;
+    private WindowInfoTrackerCallbackAdapter windowInfoTrackerCallbackAdapter;
+
+    private WindowMetricsCalculator windowMetricsCalculator;
+    private final LayoutStateChangeCallback layoutStateChangeCallback =
+            new LayoutStateChangeCallback(this);
 
     // Some code to load our native library:
     static {
@@ -106,7 +119,8 @@ public class AGDKTunnelActivity extends GameActivity {
             inputMappingClient.setInputMappingProvider(inputMappingProvider);
         }
 
-        windowInfoTracker = WindowInfoTracker.getOrCreate(this);
+        windowInfoTrackerCallbackAdapter = new WindowInfoTrackerCallbackAdapter(WindowInfoTracker.Companion.getOrCreate(this));
+        windowMetricsCalculator = WindowMetricsCalculator.getOrCreate();
         obtainWindowMetrics();
         onWindowLayoutInfoChange();
     }
@@ -136,6 +150,9 @@ public class AGDKTunnelActivity extends GameActivity {
         Log.d(TAG, TAG + ".onStart");
 
         super.onStart();
+
+        // FOLDABLES
+        windowInfoTrackerCallbackAdapter.addWindowLayoutInfoListener(this, runOnUiThreadExecutor(), layoutStateChangeCallback);
     }
 
     @Override
@@ -143,6 +160,9 @@ public class AGDKTunnelActivity extends GameActivity {
         Log.d(TAG, TAG + ".onStop");
 
         super.onStop();
+
+        // FOLDABLES
+        windowInfoTrackerCallbackAdapter.removeWindowLayoutInfoListener(layoutStateChangeCallback);
     }
 
     @Override
@@ -253,4 +273,51 @@ public class AGDKTunnelActivity extends GameActivity {
     }
 
     private BaseGameFrameworkUtils baseGameFrameworkUtils;
+
+    // FOLDABLES
+    static Executor runOnUiThreadExecutor() {
+        return new MyExecutor();
+    }
+
+    static class MyExecutor implements Executor {
+        Handler handler = new Handler(Looper.getMainLooper());
+
+        @Override
+        public void execute(Runnable command) {
+            handler.post(command);
+        }
+    }
+    static class LayoutStateChangeCallback implements Consumer<WindowLayoutInfo> {
+        private final Activity activity;
+
+        private final WindowMetricsCalculator windowMetricsCalculator;
+
+        public LayoutStateChangeCallback(Activity activity) {
+            this.activity = activity;
+            this.windowMetricsCalculator = WindowMetricsCalculator.getOrCreate();
+        }
+
+        @Override
+        public void accept(WindowLayoutInfo windowLayoutInfo) {
+            // updateLayout
+            Log.d(TAG, "LayoutStateChangeCallback accept");
+            WindowMetrics currentMetrics = windowMetricsCalculator.computeCurrentWindowMetrics(activity);
+            WindowMetrics maxMetrics = windowMetricsCalculator.computeMaximumWindowMetrics(activity);
+
+            List<DisplayFeature> displayFeatures = windowLayoutInfo.getDisplayFeatures();
+            if ( !displayFeatures.isEmpty() ) {
+                for (DisplayFeature displayFeature : displayFeatures ) {
+                    FoldingFeature foldingFeature = (FoldingFeature) displayFeature;
+                    if ( foldingFeature != null ) {
+                        Log.d(TAG, foldingFeature.toString());
+                        Log.d(TAG, "Folding Feature orientation: " + foldingFeature.getOrientation());
+                        Log.d(TAG, "Folding Feature state: " + foldingFeature.getState());
+                        Log.d(TAG, "Folding Feature occlusionType: " + foldingFeature.getOcclusionType());
+                        Log.d(TAG, "Folding Feature isSeperating: " + foldingFeature.isSeparating());
+                        Log.d(TAG, "Folding Feature bounds: " + foldingFeature.getBounds());
+                    }
+                }
+            }
+        }
+    }
 }

@@ -108,6 +108,8 @@ dependencies {
     ext.windowmanager_version = "1.1.0"
 
     implementation "androidx.window:window:$windowmanager_version"
+    // For Java-friendly APIs to register and unregister callbacks
+    implementation "androidx.window:window-java:1.2.0"
     implementation "androidx.lifecycle:lifecycle-viewmodel:2.2.0"
     implementation "androidx.lifecycle:lifecycle-livedata:2.2.0"
     implementation "androidx.lifecycle:lifecycle-runtime:2.2.0"
