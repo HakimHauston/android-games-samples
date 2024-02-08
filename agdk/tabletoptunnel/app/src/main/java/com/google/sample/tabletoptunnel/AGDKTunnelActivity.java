@@ -304,6 +304,33 @@ public class AGDKTunnelActivity extends GameActivity {
             WindowMetrics currentMetrics = windowMetricsCalculator.computeCurrentWindowMetrics(activity);
             WindowMetrics maxMetrics = windowMetricsCalculator.computeMaximumWindowMetrics(activity);
 
+            /*
+                2024-02-08 19:17:36.628 32006-32006 AGDKTunnelActivity      com.google.sample.tabletoptunnel     D  LayoutStateChangeCallback accept
+                2024-02-08 19:17:36.634 32006-32006 AGDKTunnelActivity      com.google.sample.tabletoptunnel     D  HardwareFoldingFeature { Bounds { [1104,0,1104,1840] }, type=FOLD, state=HALF_OPENED }
+                2024-02-08 19:17:36.635 32006-32006 AGDKTunnelActivity      com.google.sample.tabletoptunnel     D  Folding Feature orientation: VERTICAL
+                2024-02-08 19:17:36.635 32006-32006 AGDKTunnelActivity      com.google.sample.tabletoptunnel     D  Folding Feature state: HALF_OPENED
+                2024-02-08 19:17:36.635 32006-32006 AGDKTunnelActivity      com.google.sample.tabletoptunnel     D  Folding Feature occlusionType: NONE
+                2024-02-08 19:17:36.635 32006-32006 AGDKTunnelActivity      com.google.sample.tabletoptunnel     D  Folding Feature isSeperating: true
+                2024-02-08 19:17:36.635 32006-32006 AGDKTunnelActivity      com.google.sample.tabletoptunnel     D  Folding Feature bounds: Rect(1104, 0 - 1104, 1840)
+             */
+
+            /*
+                2024-02-08 19:23:31.804   679-773   GameControllerThread    com.google.sample.tabletoptunnel     D  onInputDeviceChanged id: 5
+                2024-02-08 19:23:31.807   679-679   AGDKTunnelActivity      com.google.sample.tabletoptunnel     D  HardwareFoldingFeature { Bounds { [0,797,1840,797] }, type=FOLD, state=HALF_OPENED }
+                2024-02-08 19:23:31.807   679-679   AGDKTunnelActivity      com.google.sample.tabletoptunnel     D  Folding Feature orientation: HORIZONTAL
+                2024-02-08 19:23:31.807   679-679   AGDKTunnelActivity      com.google.sample.tabletoptunnel     D  Folding Feature state: HALF_OPENED
+                2024-02-08 19:23:31.807   679-679   AGDKTunnelActivity      com.google.sample.tabletoptunnel     D  Folding Feature occlusionType: NONE
+                2024-02-08 19:23:31.807   679-679   AGDKTunnelActivity      com.google.sample.tabletoptunnel     D  Folding Feature isSeperating: true
+                2024-02-08 19:23:31.807   679-679   AGDKTunnelActivity      com.google.sample.tabletoptunnel     D  Folding Feature bounds: Rect(0, 797 - 1840, 797)
+                2024-02-08 19:23:31.932   679-679   AGDKTunnelActivity      com.google.sample.tabletoptunnel     D  LayoutStateChangeCallback accept
+                2024-02-08 19:23:31.937   679-773   GameControllerThread    com.google.sample.tabletoptunnel     D  onInputDeviceChanged id: 5
+                2024-02-08 19:23:31.938   679-679   AGDKTunnelActivity      com.google.sample.tabletoptunnel     D  HardwareFoldingFeature { Bounds { [0,797,1840,797] }, type=FOLD, state=FLAT }
+                2024-02-08 19:23:31.938   679-679   AGDKTunnelActivity      com.google.sample.tabletoptunnel     D  Folding Feature orientation: HORIZONTAL
+                2024-02-08 19:23:31.938   679-679   AGDKTunnelActivity      com.google.sample.tabletoptunnel     D  Folding Feature state: FLAT
+                2024-02-08 19:23:31.938   679-679   AGDKTunnelActivity      com.google.sample.tabletoptunnel     D  Folding Feature occlusionType: NONE
+                2024-02-08 19:23:31.938   679-679   AGDKTunnelActivity      com.google.sample.tabletoptunnel     D  Folding Feature isSeperating: false
+                2024-02-08 19:23:31.938   679-679   AGDKTunnelActivity      com.google.sample.tabletoptunnel     D  Folding Feature bounds: Rect(0, 797 - 1840, 797)
+             */
             List<DisplayFeature> displayFeatures = windowLayoutInfo.getDisplayFeatures();
             if ( !displayFeatures.isEmpty() ) {
                 for (DisplayFeature displayFeature : displayFeatures ) {
