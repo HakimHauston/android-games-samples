@@ -69,8 +69,7 @@ public class AGDKTunnelActivity extends GameActivity {
     private WindowInfoTrackerCallbackAdapter windowInfoTrackerCallbackAdapter;
 
     private WindowMetricsCalculator windowMetricsCalculator;
-    private final LayoutStateChangeCallback layoutStateChangeCallback =
-            new LayoutStateChangeCallback(this);
+    private LayoutStateChangeCallback layoutStateChangeCallback;
 
     // Some code to load our native library:
     static {
@@ -121,6 +120,7 @@ public class AGDKTunnelActivity extends GameActivity {
 
         windowInfoTrackerCallbackAdapter = new WindowInfoTrackerCallbackAdapter(WindowInfoTracker.Companion.getOrCreate(this));
         windowMetricsCalculator = WindowMetricsCalculator.getOrCreate();
+        layoutStateChangeCallback = new LayoutStateChangeCallback(this);
         obtainWindowMetrics();
         onWindowLayoutInfoChange();
     }
