@@ -329,7 +329,7 @@ public class AGDKTunnelActivity extends GameActivity {
             WindowMetrics currentMetrics = windowMetricsCalculator.computeCurrentWindowMetrics(activity);
             WindowMetrics maxMetrics = windowMetricsCalculator.computeMaximumWindowMetrics(activity);
 
-            Log.d(TAG, "FLOW WindowMetrics current: " + currentMetrics.getBounds().toString() + " windowInsets: " + currentMetrics.getWindowInsets()toWindowInsets().toString());
+            Log.d(TAG, "FLOW WindowMetrics current: " + currentMetrics.getBounds().toString() + " windowInsets: " + currentMetrics.getWindowInsets().toWindowInsets().toString());
             Log.d(TAG, "FLOW WindowMetrics max: " + maxMetrics.getBounds().toString() + " windowInsets: " + maxMetrics.getWindowInsets().toWindowInsets().toString());
 
             /*
