@@ -71,6 +71,8 @@ public class AGDKTunnelActivity extends GameActivity {
     private WindowMetricsCalculator windowMetricsCalculator;
     private LayoutStateChangeCallback layoutStateChangeCallback;
 
+    private static MyExecutor executor;
+
     // Some code to load our native library:
     static {
         // Load the STL first to workaround issues on old Android versions:
@@ -121,12 +123,35 @@ public class AGDKTunnelActivity extends GameActivity {
         windowInfoTrackerCallbackAdapter = new WindowInfoTrackerCallbackAdapter(WindowInfoTracker.Companion.getOrCreate(this));
         windowMetricsCalculator = WindowMetricsCalculator.getOrCreate();
         layoutStateChangeCallback = new LayoutStateChangeCallback(this);
+
+        executor = new MyExecutor();
+
         obtainWindowMetrics();
         onWindowLayoutInfoChange();
     }
 
     private void obtainWindowMetrics() {
-
+        WindowMetrics currentMetrics = windowMetricsCalculator.computeCurrentWindowMetrics(this);
+        WindowMetrics maxMetrics = windowMetricsCalculator.computeMaximumWindowMetrics(this);
+        Log.d(TAG, "WindowMetrics current: " + currentMetrics.toString());
+        Log.d(TAG, "WindowMetrics max: " + maxMetrics.toString());
+        WindowInfoTracker windowInfoTracker = WindowInfoTracker.Companion.getOrCreate(this);
+        // Flow<WindowLayoutInfo> windowLayoutInfos = windowInfoTracker.windowLayoutInfo(this);
+        
+        // List<DisplayFeature> displayFeatures = windowLayoutInfo.getDisplayFeatures();
+        // if ( !displayFeatures.isEmpty() ) {
+        //     for (DisplayFeature displayFeature : displayFeatures ) {
+        //         FoldingFeature foldingFeature = (FoldingFeature) displayFeature;
+        //         if ( foldingFeature != null ) {
+        //             Log.d(TAG, foldingFeature.toString());
+        //             Log.d(TAG, "Folding Feature orientation: " + foldingFeature.getOrientation());
+        //             Log.d(TAG, "Folding Feature state: " + foldingFeature.getState());
+        //             Log.d(TAG, "Folding Feature occlusionType: " + foldingFeature.getOcclusionType());
+        //             Log.d(TAG, "Folding Feature isSeperating: " + foldingFeature.isSeparating());
+        //             Log.d(TAG, "Folding Feature bounds: " + foldingFeature.getBounds());
+        //         }
+        //     }
+        // }
     }
 
     private void onWindowLayoutInfoChange() {
@@ -276,7 +301,7 @@ public class AGDKTunnelActivity extends GameActivity {
 
     // FOLDABLES
     static Executor runOnUiThreadExecutor() {
-        return new MyExecutor();
+        return executor;
     }
 
     static class MyExecutor implements Executor {
@@ -303,6 +328,9 @@ public class AGDKTunnelActivity extends GameActivity {
             Log.d(TAG, "LayoutStateChangeCallback accept");
             WindowMetrics currentMetrics = windowMetricsCalculator.computeCurrentWindowMetrics(activity);
             WindowMetrics maxMetrics = windowMetricsCalculator.computeMaximumWindowMetrics(activity);
+
+            Log.d(TAG, "FLOW WindowMetrics current: " + currentMetrics.getBounds().toString() + " windowInsets: " + currentMetrics.getWindowInsets()toWindowInsets().toString());
+            Log.d(TAG, "FLOW WindowMetrics max: " + maxMetrics.getBounds().toString() + " windowInsets: " + maxMetrics.getWindowInsets().toWindowInsets().toString());
 
             /*
                 2024-02-08 19:17:36.628 32006-32006 AGDKTunnelActivity      com.google.sample.tabletoptunnel     D  LayoutStateChangeCallback accept
@@ -337,11 +365,11 @@ public class AGDKTunnelActivity extends GameActivity {
                     FoldingFeature foldingFeature = (FoldingFeature) displayFeature;
                     if ( foldingFeature != null ) {
                         Log.d(TAG, foldingFeature.toString());
-                        Log.d(TAG, "Folding Feature orientation: " + foldingFeature.getOrientation());
-                        Log.d(TAG, "Folding Feature state: " + foldingFeature.getState());
-                        Log.d(TAG, "Folding Feature occlusionType: " + foldingFeature.getOcclusionType());
-                        Log.d(TAG, "Folding Feature isSeperating: " + foldingFeature.isSeparating());
-                        Log.d(TAG, "Folding Feature bounds: " + foldingFeature.getBounds());
+                        Log.d(TAG, "FLOW Folding Feature orientation: " + foldingFeature.getOrientation());
+                        Log.d(TAG, "FLOW Folding Feature state: " + foldingFeature.getState());
+                        Log.d(TAG, "FLOW Folding Feature occlusionType: " + foldingFeature.getOcclusionType());
+                        Log.d(TAG, "FLOW Folding Feature isSeperating: " + foldingFeature.isSeparating());
+                        Log.d(TAG, "FLOW Folding Feature bounds: " + foldingFeature.getBounds());
                     }
                 }
             }
