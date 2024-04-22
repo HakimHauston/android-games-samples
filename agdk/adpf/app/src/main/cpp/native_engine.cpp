@@ -288,6 +288,8 @@ void NativeEngine::HandleCommand(int32_t cmd) {
           // passed down from NativeActivity when restarting Activity
           mHasFocus = appState.mHasFocus;
         }
+
+        testGlQueryCounter();
       }
       VLOGD("HandleCommand(%d): hasWindow = %d, hasFocus = %d", cmd,
             mHasWindow ? 1 : 0, mHasFocus ? 1 : 0);
@@ -445,8 +447,34 @@ bool NativeEngine::InitSurface() {
     return false;
   }
 
+  // glQueryCounter test
+  testGlQueryCounter();
+
   ALOGI("NativeEngine: successfully initialized surface.");
   return true;
+}
+
+void NativeEngine::testGlQueryCounter() {
+  GLint extensionCount = 0;
+
+  const char *version_string = reinterpret_cast<const char *>(glGetString(GL_VERSION));
+  ALOGI("NativeEngine: testGlQueryCounter version_string %s", version_string); // (null)
+
+  glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
+  ALOGI("NativeEngine: testGlQueryCounter extensionCount %d", extensionCount); // 0
+
+   ALOGI("NativeEngine: testGlQueryCounter extensionCount: %d", extensionCount);
+   for (GLint i = 0; i < extensionCount; i++) {
+     const GLubyte *extensionString = glGetStringi(GL_EXTENSIONS, i);
+     const char *extStr = reinterpret_cast<const char*>(extensionString);
+     ALOGI("NativeEngine: testGlQueryCounter %s", extStr);
+
+     // if (strcmp(reinterpret_cast<const char *>(extensionString), kAstcExtensionString) == 0) {
+     //   supported = true;
+     //   break;
+     // }
+   }
+
 }
 
 bool NativeEngine::InitContext() {

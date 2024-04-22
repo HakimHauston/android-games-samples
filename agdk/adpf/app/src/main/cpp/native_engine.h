@@ -20,6 +20,10 @@
 #include "common.h"
 #include "swappy/swappyGL.h"
 
+// #include "GL/glew.h"
+#include <EGL/egl.h>
+#include <GLES3/gl3.h>
+
 class ImGuiManager;
 
 struct NativeEngineSavedState {
@@ -99,6 +103,8 @@ class NativeEngine {
 
   // is this the first frame we're drawing?
   bool mIsFirstFrame;
+
+  void testGlQueryCounter();
 
   // initialize the display
   bool InitDisplay();
