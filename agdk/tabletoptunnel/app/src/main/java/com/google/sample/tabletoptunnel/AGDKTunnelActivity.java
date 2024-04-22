@@ -100,7 +100,9 @@ public class AGDKTunnelActivity extends GameActivity {
 
         // When true, the app will fit inside any system UI windows.
         // When false, we render behind any system UI windows.
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        // WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        // hideSystemUI();
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
         hideSystemUI();
         // You can set IME fields here or in native code using GameActivity_setImeEditorInfoFields.
         // We set the fields in native_engine.cpp.
