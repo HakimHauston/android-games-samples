@@ -28,6 +28,11 @@
 
 #include <android/log.h>
 
+// #include <EGL/egl.h>
+// #include <EGL/eglext.h>
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
+
 #define ALOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__);
 #define ALOGW(...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__);
 #define ALOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__);
@@ -87,6 +92,87 @@ void RendererGLES::listFeaturesAvailable() {
   }
 }
 
+  void RendererGLES::StartQueryTimer()
+  {
+    GLsizei N = 1;
+    GLuint queries[N];
+    GLuint available = 0;
+    GLint disjointOccurred = 0;
+
+    ALOGI("RendererGLES::StartQueryTimer");
+
+    /* Timer queries can contain more than 32 bits of data, so always
+        query them using the 64 bit types to avoid overflow */
+    GLuint timeElapsed = 0;
+
+    /* Create a query object. */
+    // glGenQueries (GLsizei n, GLuint *ids);
+    glGenQueries(N, queries);
+    
+    /* Clear disjoint error */
+    glGetIntegerv(GL_GPU_DISJOINT_EXT, &disjointOccurred);
+
+    /* Start query 1 */
+    glBeginQuery(GL_TIME_ELAPSED_EXT, queries[0]);
+
+    /* Draw object 1 */
+    //....
+
+    /* End query 1 */
+    glEndQuery(GL_TIME_ELAPSED_EXT);
+
+    //...
+
+    /* Start query N */
+    glBeginQuery(GL_TIME_ELAPSED_EXT, queries[N-1]);
+
+    /* Draw object N */
+    //....
+
+    /* End query N */
+    glEndQuery(GL_TIME_ELAPSED_EXT);
+
+    /* Wait for all results to become available */
+    while (!available) {
+        glGetQueryObjectuiv(queries[N-1], GL_QUERY_RESULT_AVAILABLE, &available);
+    }
+    
+    /* Check for disjoint operation for all queries within the last
+        disjoint check. This way we can only check disjoint once for all
+        queries between, and once the last is filled we know all previous
+        will have been filled as well */
+    glGetIntegerv(GL_GPU_DISJOINT_EXT, &disjointOccurred);
+    
+    /* If a disjoint operation occurred, all timer queries in between
+        the last two disjoint checks that were filled are invalid, continue
+        without reading the the values */
+    ALOGI("RendererGLES::StartQueryTimer disjointOccured: %d", disjointOccurred);
+    if (!disjointOccurred) {
+        for (int i = 0; i < N; i++) {
+            /* See how much time the rendering of object i took in nanoseconds. */
+            //glGetQueryObjectui64vEXT(queries[i], GL_QUERY_RESULT, &timeElapsed);
+            glGetQueryObjectuiv(queries[i], GL_QUERY_RESULT, &timeElapsed);
+            
+            /* Do something useful with the time if a disjoint operation did
+                not occur.  Note that care should be taken to use all
+                significant bits of the result, not just the least significant
+                32 bits. */
+            //AdjustObjectLODBasedOnDrawTime(i, timeElapsed);
+            ALOGI("RendererGLES::StartQueryTimer timeElapsed %d => %d", i, timeElapsed);
+        }
+    }
+
+    // https://registry.khronos.org/OpenGL/extensions/EXT/EXT_disjoint_timer_query.txt
+    // This example is sub-optimal in that it stalls at the end of every
+    // frame to wait for query results.  Ideally, the collection of results
+    // would be delayed one frame to minimize the amount of time spent
+    // waiting for the GPU to finish rendering.
+  }
+  void RendererGLES::EndQueryTimer()
+  {
+
+  }
+
 bool RendererGLES::GetFeatureAvailable(const RendererFeature feature) {
   bool supported = false;
   switch (feature) {
@@ -112,6 +198,8 @@ bool RendererGLES::GetFeatureAvailable(const RendererFeature feature) {
 
 void RendererGLES::BeginFrame(
     const base_game_framework::DisplayManager::SwapchainHandle /*swapchain_handle*/) {
+  StartQueryTimer();
+  
   resources_.ProcessDeleteQueue();
   EGLBoolean result = eglMakeCurrent(egl_display_, egl_surface_, egl_surface_, egl_context_);
   if (result == EGL_FALSE) {
