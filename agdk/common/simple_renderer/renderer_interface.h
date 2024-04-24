@@ -107,6 +107,9 @@ class Renderer {
  */
   virtual bool GetFeatureAvailable(const RendererFeature feature) = 0;
 
+  virtual void StartQueryTimer() = 0;
+  virtual void EndQueryTimer() = 0;
+
 /**
  * @brief Tell the renderer to set up to begin rendering a frame of draw calls.
  */

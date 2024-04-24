@@ -221,24 +221,28 @@ void RendererGLES::listFeaturesAvailable() {
         the last two disjoint checks that were filled are invalid, continue
         without reading the the values */
     ALOGI("RendererGLES::EndQueryTimer disjointOccured: %d", disjointOccurred);
-    if (!disjointOccurred) {
-        glGetQueryObjectuiv(queries, GL_QUERY_RESULT, &timeElapsed);
-        ALOGI("RendererGLES::EndQueryTimer timeElapsed %d", timeElapsed);
 
-//        for (int i = 0; i < N; i++) {
-//            /* See how much time the rendering of object i took in nanoseconds. */
-//            //glGetQueryObjectui64vEXT(queries[i], GL_QUERY_RESULT, &timeElapsed);
-//            glGetQueryObjectuiv(queries[i], GL_QUERY_RESULT, &timeElapsed);
-//
-//            /* Do something useful with the time if a disjoint operation did
-//                not occur.  Note that care should be taken to use all
-//                significant bits of the result, not just the least significant
-//                32 bits. */
-//            //AdjustObjectLODBasedOnDrawTime(i, timeElapsed);
-//            ALOGI("RendererGLES::EndQueryTimer timeElapsed %d => %d", i, timeElapsed);
-//        }
+    glGetQueryObjectuiv(queries, GL_QUERY_RESULT, &timeElapsed);
+    ALOGI("RendererGLES::EndQueryTimer timeElapsed %d", timeElapsed);
 
-    }
+//     if (!disjointOccurred) {
+//         glGetQueryObjectuiv(queries, GL_QUERY_RESULT, &timeElapsed);
+//         ALOGI("RendererGLES::EndQueryTimer timeElapsed %d", timeElapsed);
+
+// //        for (int i = 0; i < N; i++) {
+// //            /* See how much time the rendering of object i took in nanoseconds. */
+// //            //glGetQueryObjectui64vEXT(queries[i], GL_QUERY_RESULT, &timeElapsed);
+// //            glGetQueryObjectuiv(queries[i], GL_QUERY_RESULT, &timeElapsed);
+// //
+// //            /* Do something useful with the time if a disjoint operation did
+// //                not occur.  Note that care should be taken to use all
+// //                significant bits of the result, not just the least significant
+// //                32 bits. */
+// //            //AdjustObjectLODBasedOnDrawTime(i, timeElapsed);
+// //            ALOGI("RendererGLES::EndQueryTimer timeElapsed %d => %d", i, timeElapsed);
+// //        }
+
+//     }
 
     // https://registry.khronos.org/OpenGL/extensions/EXT/EXT_disjoint_timer_query.txt
     // This example is sub-optimal in that it stalls at the end of every
@@ -274,7 +278,6 @@ bool RendererGLES::GetFeatureAvailable(const RendererFeature feature) {
 
 void RendererGLES::BeginFrame(
     const base_game_framework::DisplayManager::SwapchainHandle /*swapchain_handle*/) {
-  StartQueryTimer();
   
   resources_.ProcessDeleteQueue();
   EGLBoolean result = eglMakeCurrent(egl_display_, egl_surface_, egl_surface_, egl_context_);
@@ -294,8 +297,7 @@ void RendererGLES::EndFrame() {
 
   // Clear current render pass
   render_pass_ = nullptr;
-  
-  EndQueryTimer();
+
 }
 
 void RendererGLES::SwapchainRecreated() {

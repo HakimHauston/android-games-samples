@@ -62,6 +62,9 @@ class RendererVk : public Renderer {
 
   virtual bool GetFeatureAvailable(const RendererFeature feature);
 
+  virtual void StartQueryTimer();
+  virtual void EndQueryTimer();
+
   virtual void BeginFrame(
       const base_game_framework::DisplayManager::SwapchainHandle swapchain_handle);
   virtual void EndFrame();

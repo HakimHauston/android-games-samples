@@ -290,6 +290,7 @@ void NativeEngine::DoFrame() {
     }
 
     simple_renderer::Renderer& renderer = simple_renderer::Renderer::GetInstance();
+    renderer.StartQueryTimer();
     renderer.BeginFrame(mSwapchainHandle);
 
     SceneManager *mgr = SceneManager::GetInstance();
@@ -304,6 +305,7 @@ void NativeEngine::DoFrame() {
     mgr->DoFrame();
 
     renderer.EndFrame();
+    renderer.EndQueryTimer();
 
     // swap buffers
     DisplayManager& display_manager = DisplayManager::GetInstance();

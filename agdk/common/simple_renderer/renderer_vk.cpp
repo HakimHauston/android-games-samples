@@ -112,6 +112,16 @@ bool RendererVk::GetFeatureAvailable(const RendererFeature feature) {
   return supported;
 }
 
+void RendererVk::StartQueryTimer()
+{
+  // TODO: GPU_PERF_HINT
+}
+
+void RendererVk::EndQueryTimer()
+{
+  // TODO: GPU_PERF_HINT
+}
+
 void RendererVk::BeginFrame(
     const base_game_framework::DisplayManager::SwapchainHandle swapchain_handle) {
   resources_.ProcessDeleteQueue();
