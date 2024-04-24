@@ -33,6 +33,7 @@ class RendererGLES : public Renderer {
   RendererGLES();
   virtual ~RendererGLES();
 
+  void listFeaturesAvailable();
   virtual bool GetFeatureAvailable(const RendererFeature feature);
 
   virtual void BeginFrame(
