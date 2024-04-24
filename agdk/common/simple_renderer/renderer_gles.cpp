@@ -26,6 +26,17 @@
 #include "display_manager.h"
 #include "gles/graphics_api_gles_resources.h"
 
+#include <android/log.h>
+
+#define ALOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__);
+#define ALOGW(...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__);
+#define ALOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__);
+#ifdef NDEBUG
+#define ALOGV(...)
+#else
+#define ALOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__);
+#endif
+
 using namespace base_game_framework;
 
 namespace simple_renderer {
@@ -56,6 +67,21 @@ void RendererGLES::PrepareShutdown() {
   render_pass_ = nullptr;
   render_state_ = nullptr;
   resources_.ProcessDeleteQueue();
+}
+
+void RendererGLES::listFeaturesAvailable() {
+  GLint extensionCount = 0;
+
+  glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
+  for (GLint i = 0; i < extensionCount; i++) {
+    const GLubyte *extensionString = glGetStringi(GL_EXTENSIONS, i);
+    const char* extStr = reinterpret_cast<const char*>(extensionString);
+    ALOGI("RendererGLES extension found: %s", extStr);
+    // if (strcmp(reinterpret_cast<const char *>(extensionString), kAstcExtensionString) == 0) {
+    //   supported = true;
+    //   break;
+    // }
+  }
 }
 
 bool RendererGLES::GetFeatureAvailable(const RendererFeature feature) {
