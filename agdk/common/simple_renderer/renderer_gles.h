@@ -36,6 +36,7 @@ class RendererGLES : public Renderer {
   void listFeaturesAvailable();
   virtual bool GetFeatureAvailable(const RendererFeature feature);
 
+  void testQueryTimer();
   void StartQueryTimer();
   void EndQueryTimer();
 

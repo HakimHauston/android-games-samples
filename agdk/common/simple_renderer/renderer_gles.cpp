@@ -92,14 +92,14 @@ void RendererGLES::listFeaturesAvailable() {
   }
 }
 
-  void RendererGLES::StartQueryTimer()
+  void RendererGLES::testQueryTimer()
   {
     GLsizei N = 1;
     GLuint queries[N];
     GLuint available = 0;
     GLint disjointOccurred = 0;
 
-    ALOGI("RendererGLES::StartQueryTimer");
+    ALOGI("RendererGLES::testQueryTimer");
 
     /* Timer queries can contain more than 32 bits of data, so always
         query them using the 64 bit types to avoid overflow */
@@ -146,7 +146,7 @@ void RendererGLES::listFeaturesAvailable() {
     /* If a disjoint operation occurred, all timer queries in between
         the last two disjoint checks that were filled are invalid, continue
         without reading the the values */
-    ALOGI("RendererGLES::StartQueryTimer disjointOccured: %d", disjointOccurred);
+    ALOGI("RendererGLES::testQueryTimer disjointOccured: %d", disjointOccurred);
     if (!disjointOccurred) {
         for (int i = 0; i < N; i++) {
             /* See how much time the rendering of object i took in nanoseconds. */
@@ -158,7 +158,7 @@ void RendererGLES::listFeaturesAvailable() {
                 significant bits of the result, not just the least significant
                 32 bits. */
             //AdjustObjectLODBasedOnDrawTime(i, timeElapsed);
-            ALOGI("RendererGLES::StartQueryTimer timeElapsed %d => %d", i, timeElapsed);
+            ALOGI("RendererGLES::testQueryTimer timeElapsed %d => %d", i, timeElapsed);
         }
     }
 
@@ -168,9 +168,85 @@ void RendererGLES::listFeaturesAvailable() {
     // would be delayed one frame to minimize the amount of time spent
     // waiting for the GPU to finish rendering.
   }
+
+  GLuint queries;
+  GLuint available = 0;
+  GLint disjointOccurred = 0;
+  GLuint timeElapsed = 0;
+  void RendererGLES::StartQueryTimer()
+  {
+    //GLsizei N = 1;
+    // GLuint queries[N];
+    // GLuint available = 0;
+    // GLint disjointOccurred = 0;
+
+    ALOGI("RendererGLES::StartQueryTimer START");
+
+    /* Timer queries can contain more than 32 bits of data, so always
+        query them using the 64 bit types to avoid overflow */
+    // GLuint timeElapsed = 0;
+
+    /* Create a query object. */
+    // glGenQueries (GLsizei n, GLuint *ids);
+    glGenQueries(1, &queries);
+    
+    /* Clear disjoint error */
+    glGetIntegerv(GL_GPU_DISJOINT_EXT, &disjointOccurred);
+
+    /* Start query 1 */
+    glBeginQuery(GL_TIME_ELAPSED_EXT, queries);
+
+    ALOGI("RendererGLES::StartQueryTimer END");
+  }
+
   void RendererGLES::EndQueryTimer()
   {
+    ALOGI("RendererGLES::EndQueryTimer START");
 
+    /* End query N */
+    glEndQuery(GL_TIME_ELAPSED_EXT);
+
+    /* Wait for all results to become available */
+    while (!available) {
+        glGetQueryObjectuiv(queries, GL_QUERY_RESULT_AVAILABLE, &available);
+    }
+    
+    /* Check for disjoint operation for all queries within the last
+        disjoint check. This way we can only check disjoint once for all
+        queries between, and once the last is filled we know all previous
+        will have been filled as well */
+    glGetIntegerv(GL_GPU_DISJOINT_EXT, &disjointOccurred);
+    
+    /* If a disjoint operation occurred, all timer queries in between
+        the last two disjoint checks that were filled are invalid, continue
+        without reading the the values */
+    ALOGI("RendererGLES::EndQueryTimer disjointOccured: %d", disjointOccurred);
+    if (!disjointOccurred) {
+        glGetQueryObjectuiv(queries, GL_QUERY_RESULT, &timeElapsed);
+        ALOGI("RendererGLES::EndQueryTimer timeElapsed %d", timeElapsed);
+
+//        for (int i = 0; i < N; i++) {
+//            /* See how much time the rendering of object i took in nanoseconds. */
+//            //glGetQueryObjectui64vEXT(queries[i], GL_QUERY_RESULT, &timeElapsed);
+//            glGetQueryObjectuiv(queries[i], GL_QUERY_RESULT, &timeElapsed);
+//
+//            /* Do something useful with the time if a disjoint operation did
+//                not occur.  Note that care should be taken to use all
+//                significant bits of the result, not just the least significant
+//                32 bits. */
+//            //AdjustObjectLODBasedOnDrawTime(i, timeElapsed);
+//            ALOGI("RendererGLES::EndQueryTimer timeElapsed %d => %d", i, timeElapsed);
+//        }
+
+    }
+
+    // https://registry.khronos.org/OpenGL/extensions/EXT/EXT_disjoint_timer_query.txt
+    // This example is sub-optimal in that it stalls at the end of every
+    // frame to wait for query results.  Ideally, the collection of results
+    // would be delayed one frame to minimize the amount of time spent
+    // waiting for the GPU to finish rendering.
+
+    ALOGI("RendererGLES::EndQueryTimer END");
   }
 
 bool RendererGLES::GetFeatureAvailable(const RendererFeature feature) {
@@ -218,6 +294,8 @@ void RendererGLES::EndFrame() {
 
   // Clear current render pass
   render_pass_ = nullptr;
+  
+  EndQueryTimer();
 }
 
 void RendererGLES::SwapchainRecreated() {
