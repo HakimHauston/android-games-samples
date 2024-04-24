@@ -220,10 +220,10 @@ void RendererGLES::listFeaturesAvailable() {
     /* If a disjoint operation occurred, all timer queries in between
         the last two disjoint checks that were filled are invalid, continue
         without reading the the values */
-    ALOGI("RendererGLES::EndQueryTimer disjointOccured: %d", disjointOccurred);
+    // ALOGI("RendererGLES::EndQueryTimer disjointOccured: %d", disjointOccurred);
 
     glGetQueryObjectuiv(queries, GL_QUERY_RESULT, &timeElapsed);
-    ALOGI("RendererGLES::EndQueryTimer timeElapsed %d", timeElapsed);
+    ALOGI("RendererGLES::EndQueryTimer disjointOccured: %d, timeElapsed %d", disjointOccurred, timeElapsed);
 
 //     if (!disjointOccurred) {
 //         glGetQueryObjectuiv(queries, GL_QUERY_RESULT, &timeElapsed);
