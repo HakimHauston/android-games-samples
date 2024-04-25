@@ -165,6 +165,11 @@ class RendererVk : public Renderer {
 
   uint32_t in_flight_frame_count_;
 
+  // GPU_PERF_HINT
+  VkCommandBuffer query_command_buffer_;
+  VkQueryPool query_pool_;
+  //VkBuffer query_buffer_;
+
   // Active frame resources
   VkCommandBuffer render_command_buffer_;
   VkExtent2D active_extent_;
