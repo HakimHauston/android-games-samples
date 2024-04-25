@@ -36,9 +36,9 @@ class RendererGLES : public Renderer {
   void listFeaturesAvailable();
   virtual bool GetFeatureAvailable(const RendererFeature feature);
 
-  void testQueryTimer();
-  void StartQueryTimer();
-  void EndQueryTimer();
+  virtual void testQueryTimer();
+  virtual void StartQueryTimer();
+  virtual void EndQueryTimer();
 
   virtual void BeginFrame(
       const base_game_framework::DisplayManager::SwapchainHandle swapchain_handle);

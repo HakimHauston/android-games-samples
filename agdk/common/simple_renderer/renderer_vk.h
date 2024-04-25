@@ -62,6 +62,7 @@ class RendererVk : public Renderer {
 
   virtual bool GetFeatureAvailable(const RendererFeature feature);
 
+  virtual void testQueryTimer();
   virtual void StartQueryTimer();
   virtual void EndQueryTimer();
 

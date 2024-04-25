@@ -25,6 +25,15 @@
 #include "renderer_vertex_buffer_vk.h"
 #include "display_manager.h"
 
+#define ALOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__);
+#define ALOGW(...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__);
+#define ALOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__);
+#ifdef NDEBUG
+#define ALOGV(...)
+#else
+#define ALOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__);
+#endif
+
 using namespace base_game_framework;
 
 namespace simple_renderer {
@@ -110,6 +119,33 @@ bool RendererVk::GetFeatureAvailable(const RendererFeature feature) {
       break;
   }
   return supported;
+}
+
+void RendererVk::testQueryTimer()
+{
+  ALOGI("RendererVk::testQueryTimer");
+
+  // To pay attention:
+  // VkPhysicalDeviceLimits::timestampComputeAndGraphics // must support
+  // VkPhysicalDeviceLimits::timestampPeriod => timestampPeriod is the number of nanoseconds required for a timestamp query to be incremented by 1.
+  
+  // vkCreateQueryPool(); VkQueryPoolCreateInfo::queryType = VK_QUERY_TYPE_TIMESTAMP
+  
+  // vkGetQueryPoolResults(); device, queryPool, queryCount = 2, firstQuery, pData, dataSize, stride, flags
+  // flags: 
+  // VK_QUERY_RESULT_64_BIT, // use uint64_t instead of uint32_t to prevent overflow
+  // VK_QUERY_RESULT_WAIT_BIT, // CPU will wait until all queries are written
+  // VK_QUERY_RESULT_WITH_AVAILABILITY_BIT, // each frame you check if the value is available on the host and don’t issue new write command until you read previous so it’s quite possible that some frames may be missed
+  // in addition to query value a special availability value is written after the query value. The non-zero value means that the query is available.
+  // if nothing is said explicitly the size of the availability value is uint32_t. If VK_QUERY_RESULT_64_BIT is used the size of availability value is uint64_t.
+  // VK_QUERY_RESULT_PARTIAL_BIT // not used
+
+  // vkCmdWriteTimestamp(); // commandBuffer, pipelineStage, queryPool, query
+  // VkCommandBuffer
+  // VkPipelineStageFlagBits
+  // VkQueryPool
+  // uint32_t query
+
 }
 
 void RendererVk::StartQueryTimer()
