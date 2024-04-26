@@ -90,6 +90,8 @@ RendererVk::RendererVk() :
   if (frame_handle != DisplayManager::kInvalid_swapchain_handle) {
     display_manager.GetSwapchainFrameResourcesVk(frame_handle, swap_, false);
   }
+
+  testQueryTimer();
 }
 
 RendererVk::~RendererVk() {
@@ -201,6 +203,7 @@ void RendererVk::StartQueryTimer()
   // TODO: GPU_PERF_HINT
   // crashing
   // Validation Error: [ VUID-vkCmdWriteTimestamp-commandBuffer-recording ] Object 0: handle = 0xb40000769e46e0d0, type = VK_OBJECT_TYPE_COMMAND_BUFFER; | MessageID = 0x272c38b3 | vkCmdWriteTimestamp():  was called before vkBeginCommandBuffer(). The Vulkan spec states: commandBuffer must be in the recording state (https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/vkspec.html#VUID-vkCmdWriteTimestamp-commandBuffer-recording)
+  // Validation Error: [ VUID-vkCmdWriteTimestamp-None-00830 ] Object 0: handle = 0xb40000769e466650, type = VK_OBJECT_TYPE_COMMAND_BUFFER; Object 1: handle = 0xa7c5450000000023, type = VK_OBJECT_TYPE_QUERY_POOL; | MessageID = 0xeb0b9b05 | vkCmdWriteTimestamp():  VkQueryPool 0xa7c5450000000023[] and query 2: query not reset. After query pool creation, each query must be reset before it is used. Queries must also be reset between uses. The Vulkan spec states: All queries used by the command must be unavailable (https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/vkspec.html#VUID-vkCmdWriteTimestamp-None-00830)
   if ( render_command_buffer_ == VK_NULL_HANDLE ) {
     ALOGI("RendererVk::StartQueryTimer render_command_buffer is NULL");
     return;
@@ -209,6 +212,8 @@ void RendererVk::StartQueryTimer()
     ALOGI("RendererVk::StartQueryTimer query_pool is NULL");
     return;
   }
+
+  ALOGI("RendererVk::StartQueryTimer about to call vkCmdWriteTimestamp");
   vkCmdWriteTimestamp(render_command_buffer_, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, query_pool_, 1);
 
   //   RenderStateVk& state = *(static_cast<RenderStateVk*>(render_state_.get()));
@@ -237,6 +242,8 @@ void RendererVk::EndQueryTimer()
     ALOGI("RendererVk::EndQueryTimer query_pool is NULL");
     return;
   }
+
+  ALOGI("RendererVk::EndQueryTimer about to call vkCmdWriteTimestamp");
   vkCmdWriteTimestamp(render_command_buffer_, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, query_pool_, 2);
 
   // Queries must be reset after each individual use
@@ -273,6 +280,8 @@ void RendererVk::BeginFrame(
                                                              &command_buffer_begin_info);
   RENDERER_CHECK_VK(begin_command_result, "vkBeginCommandBuffer");
 
+  StartQueryTimer();
+
   // We enabled dynamic viewport and width in the pipeline object,
   // so set them at the beginning of our render command buffer
 
@@ -297,6 +306,9 @@ void RendererVk::EndFrame() {
     render_pass_.get()->EndRenderPass();
     render_pass_ = nullptr;
   }
+
+  EndQueryTimer();
+
   render_state_ = nullptr;
   vkEndCommandBuffer(render_command_buffer_);
 

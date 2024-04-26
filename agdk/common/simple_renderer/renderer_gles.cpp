@@ -64,6 +64,7 @@ RendererGLES::RendererGLES() {
 
   // Call BeginFrame to make sure the context is set in case the user starts creating resources
   // immediately after initialization
+  first_call_ = true;
   BeginFrame(Renderer::GetSwapchainHandle());
 }
 
@@ -278,6 +279,12 @@ bool RendererGLES::GetFeatureAvailable(const RendererFeature feature) {
 
 void RendererGLES::BeginFrame(
     const base_game_framework::DisplayManager::SwapchainHandle /*swapchain_handle*/) {
+
+  if ( first_call_ ) {
+    first_call_ = false;
+  } else {
+    StartQueryTimer();
+  }
   
   resources_.ProcessDeleteQueue();
   EGLBoolean result = eglMakeCurrent(egl_display_, egl_surface_, egl_surface_, egl_context_);
@@ -293,6 +300,8 @@ void RendererGLES::BeginFrame(
 }
 
 void RendererGLES::EndFrame() {
+  EndQueryTimer();
+  
   EndRenderPass();
 
   // Clear current render pass

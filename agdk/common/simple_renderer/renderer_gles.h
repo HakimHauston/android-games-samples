@@ -92,6 +92,8 @@ class RendererGLES : public Renderer {
  private:
   void EndRenderPass();
 
+  bool first_call_;
+
   RendererResources resources_;
 
   std::shared_ptr<RenderPass> render_pass_;
