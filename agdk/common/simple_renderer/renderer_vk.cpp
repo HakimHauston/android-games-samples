@@ -199,11 +199,28 @@ void RendererVk::testQueryTimer()
 void RendererVk::StartQueryTimer()
 {
   // TODO: GPU_PERF_HINT
+  // crashing
+  // vkCmdWriteTimestamp(render_command_buffer_, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, query_pool_, 1);
+
+  //   RenderStateVk& state = *(static_cast<RenderStateVk*>(render_state_.get()));
+  // if (dirty_descriptor_set_) {
+  //   vkCmdBindDescriptorSets(render_command_buffer_, VK_PIPELINE_BIND_POINT_GRAPHICS,
+  //                           state.GetPipelineLayout(), 0, 1, &bound_descriptor_set_,
+  //                           0, nullptr);
+  //   dirty_descriptor_set_ = false;
+  // }
+
+  // // Update any uniform data that might have changed between draw calls
+  // state.UpdateUniformData(render_command_buffer_, true);
+
+  // vkCmdDraw(render_command_buffer_, vertex_count, 1, first_vertex, 0);
 }
 
 void RendererVk::EndQueryTimer()
 {
   // TODO: GPU_PERF_HINT
+  // crashing
+  // vkCmdWriteTimestamp(render_command_buffer_, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, query_pool_, 2);
 }
 
 void RendererVk::BeginFrame(
