@@ -20,6 +20,8 @@
 #include "platform_util_vulkan.h"
 #include <vector>
 
+//#include <vulkan/vulkan.hpp>
+
 namespace base_game_framework {
 
 static constexpr DisplayManager::SwapchainFrameHandle kDefault_swapchain_handle = 1;
@@ -120,6 +122,17 @@ void GraphicsAPIVulkan::QueryAvailability() {
   if (PlatformUtilVulkan::HasNativeWindow()) {
     QueryCapabilities();
   }
+}
+
+bool GraphicsAPIVulkan::CheckTimestampSupport() {
+//  VkPhysicalDevice device = GetPhysicalDevice();
+//  VkPhysicalDeviceLimits device_limits = device->get_gpu().get_properties().limits;
+//  if (device_limits.timestampPeriod == 0)
+//  {
+//    return false;
+//  }
+//  return true;
+    return false;
 }
 
 void GraphicsAPIVulkan::QueryCapabilities() {

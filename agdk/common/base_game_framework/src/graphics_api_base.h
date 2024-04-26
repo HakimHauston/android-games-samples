@@ -35,6 +35,8 @@ class GraphicsAPIBase {
 
   virtual void QueryAvailability() = 0;
 
+  virtual bool CheckTimestampSupport() = 0; // GPU_PERF_HINT
+
   virtual uint32_t GetFeatureFlags() const = 0;
 
   virtual bool InitializeGraphicsAPI() = 0;

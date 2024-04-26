@@ -25,6 +25,11 @@
 #include "renderer_vertex_buffer_vk.h"
 #include "display_manager.h"
 
+#include "vulkan/graphics_api_vulkan.h"
+
+// #include <vulkan/vulkan.hpp>
+// #include "../base_game_framework/src/vulkan/platform_util_vulkan.h"
+
 #define ALOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__);
 #define ALOGW(...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__);
 #define ALOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__);
@@ -122,6 +127,17 @@ bool RendererVk::GetFeatureAvailable(const RendererFeature feature) {
   return supported;
 }
 
+bool RendererVk::checkTimestampSupport()
+{
+  // // https://docs.vulkan.org/samples/latest/samples/api/timestamp_queries/README.html
+  // VkPhysicalDeviceLimits device_limits = vk_.physical_device->get_gpu().get_properties().limits;
+  // if ( device_limits.timestampPeriod == 0 ) {
+  //   ALOGI("RendererVk::checkTimestampSupport does not support TIMESTAMP");
+  // }
+  // ALOGI("RendererVk::checkTimestampSupport %d", device_limits.timestampPeriod);
+  return false;
+}
+
 void RendererVk::testQueryTimer()
 {
   // https://www.reddit.com/r/vulkan/comments/rn2k1d/vkcmdwritetimestamp_writes_the_same_time_before/?rdt=46277
@@ -140,7 +156,7 @@ void RendererVk::testQueryTimer()
   createInfo.flags = 0; // Reserved for future use, must be 0!
 
   createInfo.queryType = VK_QUERY_TYPE_TIMESTAMP;
-  createInfo.queryCount = 2; // REVIEW
+  createInfo.queryCount = 20; // REVIEW
   // createInfo.queryCount = mCommandBuffers.size() * 2; // REVIEW
 
   // VkResult result = vkCreateQueryPool(mDevice, &createInfo, nullptr, &mTimeQueryPool);
@@ -154,6 +170,9 @@ void RendererVk::testQueryTimer()
   } else {
     ALOGI("RendererVk::testQueryTimer vkCreateQueryPool result FAILED: %d query_command_buffer_ %p", result, &query_command_buffer_);
   }
+
+  // check if timestamps are supported
+
   
   
   // vkGetQueryPoolResults(); device, queryPool, queryCount = 2, firstQuery, pData, dataSize, stride, flags

@@ -82,6 +82,8 @@ class GraphicsAPIVulkan : public GraphicsAPIBase {
 
   virtual void QueryAvailability();
 
+  virtual bool CheckTimestampSupport();
+
   virtual bool InitializeGraphicsAPI();
   virtual void ShutdownGraphicsAPI();
 
