@@ -832,6 +832,13 @@ bool GraphicsAPIVulkan::CreateDevice(bool is_preflight_check,
       static_cast<uint32_t>(required_device_extensions.size());
   device_create_info.ppEnabledExtensionNames = required_device_extensions.data();
 
+  // + GPU_HINT_API
+  VkPhysicalDeviceHostQueryResetFeatures resetFeatures;
+  resetFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES;
+  resetFeatures.pNext = nullptr;
+  resetFeatures.hostQueryReset = VK_TRUE;
+  device_create_info.pNext = &resetFeatures;
+
   std::vector<const char *> validation_layers = PlatformUtilVulkan::GetValidationLayers();
   if (enable_validation) {
     device_create_info.enabledLayerCount =
