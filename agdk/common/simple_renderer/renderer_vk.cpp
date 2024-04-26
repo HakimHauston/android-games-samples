@@ -213,8 +213,11 @@ void RendererVk::StartQueryTimer()
     return;
   }
 
+  // Queries must be reset after each individual use
+  vkResetQueryPool(vk_.device, query_pool_, 0, 2);
+
   ALOGI("RendererVk::StartQueryTimer about to call vkCmdWriteTimestamp");
-  vkCmdWriteTimestamp(render_command_buffer_, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, query_pool_, 1);
+  vkCmdWriteTimestamp(render_command_buffer_, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, query_pool_, 0);
 
   //   RenderStateVk& state = *(static_cast<RenderStateVk*>(render_state_.get()));
   // if (dirty_descriptor_set_) {
@@ -244,10 +247,10 @@ void RendererVk::EndQueryTimer()
   }
 
   ALOGI("RendererVk::EndQueryTimer about to call vkCmdWriteTimestamp");
-  vkCmdWriteTimestamp(render_command_buffer_, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, query_pool_, 2);
+  vkCmdWriteTimestamp(render_command_buffer_, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, query_pool_, 1);
 
-  // Queries must be reset after each individual use
-  vkResetQueryPool(vk_.device, query_pool_, 0, 2);
+  // // Queries must be reset after each individual use
+  // vkResetQueryPool(vk_.device, query_pool_, 0, 2);
 }
 
 void RendererVk::BeginFrame(
