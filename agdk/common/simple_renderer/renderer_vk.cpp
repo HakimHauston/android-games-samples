@@ -200,7 +200,16 @@ void RendererVk::StartQueryTimer()
 {
   // TODO: GPU_PERF_HINT
   // crashing
-  // vkCmdWriteTimestamp(render_command_buffer_, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, query_pool_, 1);
+  // Validation Error: [ VUID-vkCmdWriteTimestamp-commandBuffer-recording ] Object 0: handle = 0xb40000769e46e0d0, type = VK_OBJECT_TYPE_COMMAND_BUFFER; | MessageID = 0x272c38b3 | vkCmdWriteTimestamp():  was called before vkBeginCommandBuffer(). The Vulkan spec states: commandBuffer must be in the recording state (https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/vkspec.html#VUID-vkCmdWriteTimestamp-commandBuffer-recording)
+  if ( render_command_buffer_ == VK_NULL_HANDLE ) {
+    ALOGI("RendererVk::StartQueryTimer render_command_buffer is NULL");
+    return;
+  }
+  if ( query_pool_ == VK_NULL_HANDLE ) {
+    ALOGI("RendererVk::StartQueryTimer query_pool is NULL");
+    return;
+  }
+  vkCmdWriteTimestamp(render_command_buffer_, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, query_pool_, 1);
 
   //   RenderStateVk& state = *(static_cast<RenderStateVk*>(render_state_.get()));
   // if (dirty_descriptor_set_) {
@@ -220,7 +229,18 @@ void RendererVk::EndQueryTimer()
 {
   // TODO: GPU_PERF_HINT
   // crashing
-  // vkCmdWriteTimestamp(render_command_buffer_, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, query_pool_, 2);
+  if ( render_command_buffer_ == VK_NULL_HANDLE ) {
+    ALOGI("RendererVk::EndQueryTimer render_command_buffer is NULL");
+    return;
+  }
+  if ( query_pool_ == VK_NULL_HANDLE ) {
+    ALOGI("RendererVk::EndQueryTimer query_pool is NULL");
+    return;
+  }
+  vkCmdWriteTimestamp(render_command_buffer_, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, query_pool_, 2);
+
+  // Queries must be reset after each individual use
+  vkResetQueryPool(vk_.device, query_pool_, 0, 2);
 }
 
 void RendererVk::BeginFrame(
