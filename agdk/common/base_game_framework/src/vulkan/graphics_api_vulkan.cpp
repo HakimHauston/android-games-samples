@@ -21,6 +21,7 @@
 #include <vector>
 
 //#include <vulkan/vulkan.hpp>
+#include "common.hpp"
 
 namespace base_game_framework {
 
@@ -236,6 +237,10 @@ void GraphicsAPIVulkan::QueryDeviceCapabilities(VkPhysicalDevice physical_device
                       "No vkGetPhysicalDeviceProperties2/KHR functions");
     return;
   }
+
+  // + GPU_PERF_HINT
+  ALOGI("GraphicsAPIVulkan::QueryDeviceCapabilities timestampPeriod: %f", device_properties.properties.limits.timestampPeriod); // 40.690105
+  // - GPU_PERF_HINT
 
   if (has_driver_properties) {
     driver_id_ = device_driver_properties.driverID;
