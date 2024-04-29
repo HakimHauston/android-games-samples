@@ -63,6 +63,7 @@ class RendererVk : public Renderer {
   virtual bool GetFeatureAvailable(const RendererFeature feature);
 
   bool checkTimestampSupport();
+  void retrieveTime();
   virtual void testQueryTimer();
   virtual void StartQueryTimer();
   virtual void EndQueryTimer();

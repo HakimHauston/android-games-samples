@@ -27,6 +27,8 @@
 
 #include "vulkan/graphics_api_vulkan.h"
 
+#include <inttypes.h>
+
 // #include <vulkan/vulkan.hpp>
 // #include "../base_game_framework/src/vulkan/platform_util_vulkan.h"
 
@@ -140,6 +142,22 @@ bool RendererVk::checkTimestampSupport()
   return false;
 }
 
+void RendererVk::retrieveTime()
+{
+  // vkGetQueryPoolResults(); device, queryPool, queryCount = 2, firstQuery, pData, dataSize, stride, flags
+  std::array<uint64_t, 2> resultBuffer;
+  vkDeviceWaitIdle(vk_.device);
+  vkGetQueryPoolResults(vk_.device, query_pool_, 0, 2, sizeof(uint64_t) * resultBuffer.size(), resultBuffer.data(), sizeof(uint64_t), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
+
+  // based on:
+  // https://github.com/nxp-imx/gtec-demo-framework/blob/master/DemoApps/Vulkan/GpuTimestamp/source/GpuTimestamp.cpp
+  const double timestampPeriod = 48;
+  const auto time = static_cast<uint64_t>(std::round((static_cast<double>(resultBuffer[1] - resultBuffer[0]) * timestampPeriod) / 1000.0));
+  // ALOGI("RendererVk::retrieveTime: %" PRIu64 "", time);
+  // RendererVk::retrieveTime: 8536315847637 - 8536315870684 = 1106
+  ALOGI("RendererVk::retrieveTime: %" PRIu64 " - %" PRIu64 " = %" PRIu64, resultBuffer[0], resultBuffer[1], time);
+}
+
 void RendererVk::testQueryTimer()
 {
   // https://www.reddit.com/r/vulkan/comments/rn2k1d/vkcmdwritetimestamp_writes_the_same_time_before/?rdt=46277
@@ -158,7 +176,7 @@ void RendererVk::testQueryTimer()
   createInfo.flags = 0; // Reserved for future use, must be 0!
 
   createInfo.queryType = VK_QUERY_TYPE_TIMESTAMP;
-  createInfo.queryCount = 20; // REVIEW
+  createInfo.queryCount = 2; // REVIEW
   // createInfo.queryCount = mCommandBuffers.size() * 2; // REVIEW
 
   // VkResult result = vkCreateQueryPool(mDevice, &createInfo, nullptr, &mTimeQueryPool);
@@ -214,7 +232,8 @@ void RendererVk::StartQueryTimer()
   }
 
   // Queries must be reset after each individual use
-  vkResetQueryPool(vk_.device, query_pool_, 0, 2);
+  // vkResetQueryPool(vk_.device, query_pool_, 0, 2);
+  vkCmdResetQueryPool(render_command_buffer_, query_pool_, 0, 2);
 
   ALOGI("RendererVk::StartQueryTimer about to call vkCmdWriteTimestamp");
   vkCmdWriteTimestamp(render_command_buffer_, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, query_pool_, 0);
@@ -337,6 +356,8 @@ void RendererVk::EndFrame() {
   texture_descriptor_frame_cache_.clear();
   bound_descriptor_set_ = VK_NULL_HANDLE;
   bound_image_view_ = VK_NULL_HANDLE;
+
+  retrieveTime();
 }
 
 void RendererVk::SwapchainRecreated() {
