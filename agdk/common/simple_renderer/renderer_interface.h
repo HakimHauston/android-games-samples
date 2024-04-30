@@ -51,7 +51,8 @@ class Renderer {
    * if the device supports a particular feature
    */
   enum RendererFeature : int32_t {
-    kFeature_ASTC = 0 ///< Does the device support ASTC textures
+    kFeature_ASTC = 0, ///< Does the device support ASTC textures
+    kFeature_DisjointTimerQuery = 1, ///< Does the device support disjoint timer query needed for GPU PerfHint
   };
 
 /**

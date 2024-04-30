@@ -20,7 +20,7 @@
 #include "renderer_interface.h"
 #include "renderer_resources.h"
 #include <EGL/egl.h>
-#include <GLES3/gl3.h>
+//#include <GLES3/gl3.h>
 
 namespace simple_renderer {
 
@@ -93,6 +93,7 @@ class RendererGLES : public Renderer {
   void EndRenderPass();
 
   bool first_call_;
+  bool timestamp_query_available_;
 
   RendererResources resources_;
 

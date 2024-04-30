@@ -47,6 +47,7 @@ using namespace base_game_framework;
 namespace simple_renderer {
 
 static const char *kAstcExtensionString = "GL_OES_texture_compression_astc";
+static const char *kDisjointTimerQueryExtensionString = "GL_EXT_disjoint_timer_query";
 
 RendererGLES::RendererGLES() {
   GraphicsAPIResourcesGLES graphics_api_resources_gles;
@@ -65,6 +66,7 @@ RendererGLES::RendererGLES() {
   // Call BeginFrame to make sure the context is set in case the user starts creating resources
   // immediately after initialization
   first_call_ = true;
+  timestamp_query_available_ = GetFeatureAvailable(RendererFeature::kFeature_DisjointTimerQuery);
   BeginFrame(Renderer::GetSwapchainHandle());
 }
 
@@ -270,6 +272,19 @@ bool RendererGLES::GetFeatureAvailable(const RendererFeature feature) {
         }
       }
     }
+    case Renderer::kFeature_DisjointTimerQuery:
+    {
+      GLint extensionCount = 0;
+
+      glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
+      for (GLint i = 0; i < extensionCount; i++) {
+        const GLubyte *extensionString = glGetStringi(GL_EXTENSIONS, i);
+        if (strcmp(reinterpret_cast<const char *>(extensionString), kDisjointTimerQueryExtensionString) == 0) {
+          supported = true;
+          break;
+        }
+      }
+    }
       break;
     default:
       break;
@@ -280,10 +295,12 @@ bool RendererGLES::GetFeatureAvailable(const RendererFeature feature) {
 void RendererGLES::BeginFrame(
     const base_game_framework::DisplayManager::SwapchainHandle /*swapchain_handle*/) {
 
-  if ( first_call_ ) {
-    first_call_ = false;
-  } else {
-    StartQueryTimer();
+  if ( timestamp_query_available_ ) {
+      if ( first_call_ ) {
+        first_call_ = false;
+      } else {
+        StartQueryTimer();
+      }
   }
   
   resources_.ProcessDeleteQueue();
@@ -300,7 +317,9 @@ void RendererGLES::BeginFrame(
 }
 
 void RendererGLES::EndFrame() {
-  EndQueryTimer();
+  if ( timestamp_query_available_ ) {
+    EndQueryTimer();
+  }
   
   EndRenderPass();
 
