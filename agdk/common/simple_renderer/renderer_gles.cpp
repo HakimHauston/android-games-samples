@@ -26,12 +26,16 @@
 #include "display_manager.h"
 #include "gles/graphics_api_gles_resources.h"
 
+#include <inttypes.h>
+
 #include <android/log.h>
 
 // #include <EGL/egl.h>
 // #include <EGL/eglext.h>
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
+
+#include "adpf_gpu.hpp"
 
 #define ALOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__);
 #define ALOGW(...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__);
@@ -253,7 +257,11 @@ void RendererGLES::listFeaturesAvailable() {
     // would be delayed one frame to minimize the amount of time spent
     // waiting for the GPU to finish rendering.
 
-    ALOGI("RendererGLES::EndQueryTimer END");
+    int64_t workDuration = (int64_t) timeElapsed;
+    ALOGI("RendererGLES::EndQueryTimer END %" PRIu64 "", workDuration);
+
+    
+    AdpfGpu::getInstance().reportGpuWorkDuration(workDuration);
   }
 
 bool RendererGLES::GetFeatureAvailable(const RendererFeature feature) {
