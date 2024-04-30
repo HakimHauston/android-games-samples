@@ -22,15 +22,29 @@
 #include "system_event_manager.h"
 #include "user_input_manager.h"
 
+#include <android/performance_hint.h>
+
 using namespace base_game_framework;
+
+#define DEFAULT_TARGET_NS 16666666
 
 class AdpfGpu {
     private:
+        AdpfGpu();
+
+        APerformanceHintManager *performance_hint_manager_;
+        APerformanceHintSession *performance_hint_session_;
+        AWorkDuration *work_duration_;
     public:
+        ~AdpfGpu();
+
         static AdpfGpu& getInstance() {
             static AdpfGpu instance;
             return instance;
         }
+
+        void initializePerformanceHintManager(int32_t thread_ids, size_t thread_size, int64_t target_work_duration = DEFAULT_TARGET_NS);
+        void uninitializePerformanceHintManager();
 
         void reportGpuWorkDuration(int64_t work_duration);
 };
