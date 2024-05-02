@@ -61,7 +61,7 @@ AdpfGpu::~AdpfGpu()
 void AdpfGpu::initializePerformanceHintManager(int32_t *thread_ids, size_t thread_size, int64_t target_work_duration)
 {
     ALOGI("AdpfGpu::initializePerformanceHintManager %d", __ANDROID_API__);
-#if __ANDROID_API__ >= 33
+#if __ANDROID_API__ >= 35
     performance_hint_manager_ = APerformanceHint_getManager();
     performance_hint_session_ = APerformanceHint_createSession(performance_hint_manager_, thread_ids, thread_size, target_work_duration);
     work_duration_ = AWorkDuration_create();
@@ -70,7 +70,7 @@ void AdpfGpu::initializePerformanceHintManager(int32_t *thread_ids, size_t threa
 
 void AdpfGpu::uninitializePerformanceHintManager()
 {
-#if __ANDROID_API__ >= 33
+#if __ANDROID_API__ >= 35
     if ( work_duration_ != nullptr ) {
         AWorkDuration_release(work_duration_);
         work_duration_ = nullptr;
@@ -88,8 +88,10 @@ void AdpfGpu::reportGpuWorkDuration(int64_t work_duration)
     if ( performance_hint_manager_ != nullptr && 
         performance_hint_session_ != nullptr &&  work_duration_ != nullptr ) {
         ALOGI("AdpfGpu::reportGpuWorkDuration %" PRIu64 "", work_duration);
+#if __ANDROID_API__ >= 35
         AWorkDuration_setActualGpuDurationNanos(work_duration_, work_duration);
         APerformanceHint_reportActualWorkDuration2(performance_hint_session_, work_duration_);
+#endif
     } else {
         ALOGI("AdpfGpu::reportGpuWorkDuration performance_hint_manager_ is null : %p", performance_hint_manager_);
     }
