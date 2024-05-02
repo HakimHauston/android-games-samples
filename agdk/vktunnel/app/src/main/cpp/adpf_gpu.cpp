@@ -28,6 +28,9 @@
 
 #include <inttypes.h>
 
+#include <sched.h>
+#include <unistd.h>
+
 using namespace base_game_framework;
 
 // verbose debug logs on?
@@ -44,7 +47,10 @@ AdpfGpu::AdpfGpu() :
     performance_hint_session_(nullptr),
     work_duration_(nullptr)
 {
-    initializePerformanceHintManager();
+    // int32_t thread_ids, size_t thread_size, int64_t target_work_duration
+    int32_t tids[1];
+    tids[0] = gettid();
+    initializePerformanceHintManager(tids, 1);
 }
 
 AdpfGpu::~AdpfGpu()
@@ -52,7 +58,7 @@ AdpfGpu::~AdpfGpu()
     uninitializePerformanceHintManager();
 }
 
-void AdpfGpu::initializePerformanceHintManager(int32_t thread_ids, size_t thread_size, int64_t target_work_duration)
+void AdpfGpu::initializePerformanceHintManager(int32_t *thread_ids, size_t thread_size, int64_t target_work_duration)
 {
     ALOGI("AdpfGpu::initializePerformanceHintManager %d", __ANDROID_API__);
 #if __ANDROID_API__ >= 33

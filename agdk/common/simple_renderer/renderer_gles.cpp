@@ -102,7 +102,7 @@ void RendererGLES::listFeaturesAvailable() {
   void RendererGLES::testQueryTimer()
   {
     GLsizei N = 1;
-    GLuint queries[N];
+    GLuint queries[1]; // [N]
     GLuint available = 0;
     GLint disjointOccurred = 0;
 

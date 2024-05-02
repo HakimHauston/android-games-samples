@@ -43,7 +43,7 @@ class AdpfGpu {
             return instance;
         }
 
-        void initializePerformanceHintManager(int32_t thread_ids, size_t thread_size, int64_t target_work_duration = DEFAULT_TARGET_NS);
+        void initializePerformanceHintManager(int32_t *thread_ids, size_t thread_size, int64_t target_work_duration = DEFAULT_TARGET_NS);
         void uninitializePerformanceHintManager();
 
         void reportGpuWorkDuration(int64_t work_duration);
