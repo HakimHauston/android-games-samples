@@ -26,6 +26,7 @@
 #include "display_manager.h"
 #include "gles/graphics_api_gles_resources.h"
 
+#include <chrono>
 #include <inttypes.h>
 
 #include <android/log.h>
@@ -189,6 +190,11 @@ void RendererGLES::listFeaturesAvailable() {
 
     ALOGI("RendererGLES::StartQueryTimer START");
 
+    // CPU_PERF_HINT
+    cpu_clock_start_ = std::chrono::high_resolution_clock::now();
+    auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(cpu_clock_start_.time_since_epoch()).count();
+    AdpfGpu::getInstance().setWorkPeriodStartTimestampNanos(nanos);
+
     /* Timer queries can contain more than 32 bits of data, so always
         query them using the 64 bit types to avoid overflow */
     // GLuint timeElapsed = 0;
@@ -209,6 +215,14 @@ void RendererGLES::listFeaturesAvailable() {
   void RendererGLES::EndQueryTimer()
   {
     ALOGI("RendererGLES::EndQueryTimer START");
+
+    // CPU_PERF_HINT
+    auto cpu_clock_end = std::chrono::high_resolution_clock::now();
+    auto cpu_clock_past = cpu_clock_end - cpu_clock_start_;
+    auto cpu_clock_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(cpu_clock_past).count();
+    int64_t duration_ns = static_cast<int64_t>(cpu_clock_duration);
+    AdpfGpu::getInstance().setActualCpuDurationNanos(duration_ns);
+    AdpfGpu::getInstance().setActualTotalDurationNanos(duration_ns);
 
     /* End query N */
     glEndQuery(GL_TIME_ELAPSED_EXT);
@@ -258,10 +272,10 @@ void RendererGLES::listFeaturesAvailable() {
     // waiting for the GPU to finish rendering.
 
     int64_t workDuration = (int64_t) timeElapsed;
-    ALOGI("RendererGLES::EndQueryTimer END %" PRIu64 "", workDuration);
+    // AdpfGpu::getInstance().reportGpuWorkDuration(workDuration);
+    AdpfGpu::getInstance().setActualGpuDurationNanos(workDuration);
 
-    
-    AdpfGpu::getInstance().reportGpuWorkDuration(workDuration);
+    ALOGI("RendererGLES::EndQueryTimer END %" PRIu64 "", workDuration);
   }
 
 bool RendererGLES::GetFeatureAvailable(const RendererFeature feature) {

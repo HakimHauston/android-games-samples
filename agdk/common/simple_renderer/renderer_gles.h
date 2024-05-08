@@ -95,6 +95,8 @@ class RendererGLES : public Renderer {
   bool first_call_;
   bool timestamp_query_available_;
 
+  std::chrono::time_point<std::chrono::high_resolution_clock> cpu_clock_start_;
+
   RendererResources resources_;
 
   std::shared_ptr<RenderPass> render_pass_;
