@@ -168,6 +168,7 @@ class RendererVk : public Renderer {
   uint32_t in_flight_frame_count_;
 
   // GPU_PERF_HINT
+  std::chrono::time_point<std::chrono::high_resolution_clock> cpu_clock_start_;
   VkCommandBuffer query_command_buffer_;
   VkQueryPool query_pool_;
   //VkBuffer query_buffer_;

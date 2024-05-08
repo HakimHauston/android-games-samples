@@ -27,7 +27,10 @@
 
 #include "vulkan/graphics_api_vulkan.h"
 
+#include "adpf_gpu.hpp"
+
 #include <inttypes.h>
+#include <chrono>
 
 // #include <vulkan/vulkan.hpp>
 // #include "../base_game_framework/src/vulkan/platform_util_vulkan.h"
@@ -156,6 +159,18 @@ void RendererVk::retrieveTime()
   // ALOGI("RendererVk::retrieveTime: %" PRIu64 "", time);
   // RendererVk::retrieveTime: 8536315847637 - 8536315870684 = 1106
   ALOGI("RendererVk::retrieveTime: %" PRIu64 " - %" PRIu64 " = %" PRIu64, resultBuffer[0], resultBuffer[1], time);
+
+  // CPU_PERF_HINT
+  auto cpu_clock_end = std::chrono::high_resolution_clock::now();
+  auto cpu_clock_past = cpu_clock_end - cpu_clock_start_;
+  auto cpu_clock_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(cpu_clock_past).count();
+  int64_t duration_ns = static_cast<int64_t>(cpu_clock_duration);
+  AdpfGpu::getInstance().setActualCpuDurationNanos(duration_ns);
+  AdpfGpu::getInstance().setActualTotalDurationNanos(duration_ns);
+
+  int64_t gpu_work_duration = (int64_t) time;
+  // AdpfGpu::getInstance().reportGpuWorkDuration(gpu_work_duration);
+  AdpfGpu::getInstance().setActualGpuDurationNanos(gpu_work_duration);
 }
 
 void RendererVk::testQueryTimer()
@@ -231,6 +246,12 @@ void RendererVk::StartQueryTimer()
     return;
   }
 
+  // CPU_PERF_HINT
+  cpu_clock_start_ = std::chrono::high_resolution_clock::now();
+  auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(cpu_clock_start_.time_since_epoch()).count();
+  AdpfGpu::getInstance().setWorkPeriodStartTimestampNanos(nanos);
+
+
   // Queries must be reset after each individual use
   // vkResetQueryPool(vk_.device, query_pool_, 0, 2);
   vkCmdResetQueryPool(render_command_buffer_, query_pool_, 0, 2);
@@ -270,6 +291,7 @@ void RendererVk::EndQueryTimer()
 
   // // Queries must be reset after each individual use
   // vkResetQueryPool(vk_.device, query_pool_, 0, 2);
+
 }
 
 void RendererVk::BeginFrame(
