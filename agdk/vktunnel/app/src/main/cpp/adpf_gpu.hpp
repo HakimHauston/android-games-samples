@@ -35,6 +35,9 @@ class AdpfGpu {
         APerformanceHintManager *performance_hint_manager_;
         APerformanceHintSession *performance_hint_session_;
         AWorkDuration *work_duration_;
+
+        bool gpu_timestamp_period_set_;
+        float gpu_timestamp_period_;
     public:
         ~AdpfGpu();
 
@@ -45,6 +48,8 @@ class AdpfGpu {
 
         void initializePerformanceHintManager(int32_t *thread_ids, size_t thread_size, int64_t target_work_duration = DEFAULT_TARGET_NS);
         void uninitializePerformanceHintManager();
+
+        void setGpuTimestampPeriod(float timestamp_period);
 
         void setWorkPeriodStartTimestampNanos(int64_t cpu_timestamp);
         void setActualCpuDurationNanos(int64_t cpu_duration);

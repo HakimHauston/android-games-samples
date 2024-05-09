@@ -45,7 +45,9 @@ using namespace base_game_framework;
 AdpfGpu::AdpfGpu() :
     performance_hint_manager_(nullptr),
     performance_hint_session_(nullptr),
-    work_duration_(nullptr)
+    work_duration_(nullptr),
+    gpu_timestamp_period_set_(false),
+    gpu_timestamp_period_(1.0f)
 {
     // int32_t thread_ids, size_t thread_size, int64_t target_work_duration
     int32_t tids[1];
@@ -83,6 +85,12 @@ void AdpfGpu::uninitializePerformanceHintManager()
 #endif
 }
 
+void AdpfGpu::setGpuTimestampPeriod(float timestamp_period)
+{
+    gpu_timestamp_period_set_ = true;
+    gpu_timestamp_period_ = timestamp_period;
+}
+
 void AdpfGpu::setWorkPeriodStartTimestampNanos(int64_t cpu_timestamp)
 {
     if ( performance_hint_manager_ != nullptr && 
@@ -112,8 +120,12 @@ void AdpfGpu::setActualGpuDurationNanos(int64_t gpu_duration)
     if ( performance_hint_manager_ != nullptr && 
         performance_hint_session_ != nullptr &&  work_duration_ != nullptr ) {
 #if __ANDROID_API__ >= 35
-        ALOGI("AdpfGpu::setActualGpuDurationNanos %" PRIu64 "", gpu_duration);
-        AWorkDuration_setActualGpuDurationNanos(work_duration_, gpu_duration);
+        int64_t sent_duration = gpu_duration;
+        if ( gpu_timestamp_period_set_ ) {
+            sent_duration = gpu_timestamp_period_ * gpu_duration;
+        }
+        ALOGI("AdpfGpu::setActualGpuDurationNanos %" PRIu64 "", sent_duration);
+        AWorkDuration_setActualGpuDurationNanos(work_duration_, sent_duration);
 #endif
     } else {
         ALOGI("AdpfGpu::setActualGpuDurationNanos performance_hint_manager_ = %p work_duration_ = %p", performance_hint_manager_, work_duration_);

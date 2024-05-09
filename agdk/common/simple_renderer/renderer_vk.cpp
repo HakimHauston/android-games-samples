@@ -154,11 +154,13 @@ void RendererVk::retrieveTime()
 
   // based on:
   // https://github.com/nxp-imx/gtec-demo-framework/blob/master/DemoApps/Vulkan/GpuTimestamp/source/GpuTimestamp.cpp
-  const double timestampPeriod = 48;
-  const auto time = static_cast<uint64_t>(std::round((static_cast<double>(resultBuffer[1] - resultBuffer[0]) * timestampPeriod) / 1000.0));
+  // const double timestampPeriod = 48;
+  const auto duration = resultBuffer[1] - resultBuffer[0];
+  // const auto time = static_cast<uint64_t>(std::round((static_cast<double>(resultBuffer[1] - resultBuffer[0]) * timestampPeriod) / 1000.0));
   // ALOGI("RendererVk::retrieveTime: %" PRIu64 "", time);
   // RendererVk::retrieveTime: 8536315847637 - 8536315870684 = 1106
-  ALOGI("RendererVk::retrieveTime: %" PRIu64 " - %" PRIu64 " = %" PRIu64, resultBuffer[0], resultBuffer[1], time);
+  // ALOGI("RendererVk::retrieveTime: %" PRIu64 " - %" PRIu64 " = %" PRIu64, resultBuffer[0], resultBuffer[1], time);
+  ALOGI("RendererVk::retrieveTime: %" PRIu64 " - %" PRIu64 "", resultBuffer[0], resultBuffer[1]);
 
   // CPU_PERF_HINT
   auto cpu_clock_end = std::chrono::high_resolution_clock::now();
@@ -168,9 +170,11 @@ void RendererVk::retrieveTime()
   AdpfGpu::getInstance().setActualCpuDurationNanos(duration_ns);
   AdpfGpu::getInstance().setActualTotalDurationNanos(duration_ns);
 
-  int64_t gpu_work_duration = (int64_t) time;
+  int64_t gpu_work_duration = (int64_t) duration;
+  // int64_t gpu_work_duration = (int64_t) time;
   // AdpfGpu::getInstance().reportGpuWorkDuration(gpu_work_duration);
   AdpfGpu::getInstance().setActualGpuDurationNanos(gpu_work_duration);
+  AdpfGpu::getInstance().reportActualWorkDuration();
 }
 
 void RendererVk::testQueryTimer()

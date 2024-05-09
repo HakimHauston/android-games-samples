@@ -23,6 +23,8 @@
 //#include <vulkan/vulkan.hpp>
 #include "common.hpp"
 
+#include "adpf_gpu.hpp"
+
 namespace base_game_framework {
 
 static constexpr DisplayManager::SwapchainFrameHandle kDefault_swapchain_handle = 1;
@@ -239,6 +241,7 @@ void GraphicsAPIVulkan::QueryDeviceCapabilities(VkPhysicalDevice physical_device
   }
 
   // + GPU_PERF_HINT
+  AdpfGpu::getInstance().setGpuTimestampPeriod(device_properties.properties.limits.timestampPeriod);
   ALOGI("GraphicsAPIVulkan::QueryDeviceCapabilities timestampPeriod: %f", device_properties.properties.limits.timestampPeriod); // 40.690105
   // - GPU_PERF_HINT
 
