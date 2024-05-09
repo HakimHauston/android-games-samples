@@ -274,6 +274,7 @@ void RendererGLES::listFeaturesAvailable() {
     int64_t workDuration = (int64_t) timeElapsed;
     // AdpfGpu::getInstance().reportGpuWorkDuration(workDuration);
     AdpfGpu::getInstance().setActualGpuDurationNanos(workDuration);
+    AdpfGpu::getInstance().reportActualWorkDuration();
 
     ALOGI("RendererGLES::EndQueryTimer END %" PRIu64 "", workDuration);
   }
