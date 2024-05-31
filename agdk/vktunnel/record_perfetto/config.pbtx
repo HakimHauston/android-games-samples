@@ -27,6 +27,8 @@ data_sources: {
             atrace_categories: "dalvik"
             atrace_categories: "power"
 	        atrace_categories: "sched"
+            atrace_categories: "aidl"
+            atrace_categories: "sync"
             atrace_categories: "freq"
             atrace_categories: "idle"
             atrace_categories: "am"
