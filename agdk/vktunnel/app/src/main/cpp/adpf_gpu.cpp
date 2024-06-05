@@ -163,16 +163,16 @@ void AdpfGpu::reportActualWorkDuration()
     }
 }
 
-void AdpfGpu::reportGpuWorkDuration(int64_t work_duration)
-{
-    if ( performance_hint_manager_ != nullptr && 
-        performance_hint_session_ != nullptr &&  work_duration_ != nullptr ) {
-#if __ANDROID_API__ >= 35
-        ALOGI("AdpfGpu::reportGpuWorkDuration %" PRIu64 "", work_duration);
-        AWorkDuration_setActualGpuDurationNanos(work_duration_, work_duration);
-        APerformanceHint_reportActualWorkDuration2(performance_hint_session_, work_duration_);
-#endif
-    } else {
-        ALOGI("AdpfGpu::reportGpuWorkDuration performance_hint_manager_ is null : %p", performance_hint_manager_);
-    }
-}
+// void AdpfGpu::reportGpuWorkDuration(int64_t work_duration)
+// {
+//     if ( performance_hint_manager_ != nullptr && 
+//         performance_hint_session_ != nullptr &&  work_duration_ != nullptr ) {
+// #if __ANDROID_API__ >= 35
+//         ALOGI("AdpfGpu::reportGpuWorkDuration %" PRIu64 "", work_duration);
+//         AWorkDuration_setActualGpuDurationNanos(work_duration_, work_duration);
+//         //APerformanceHint_reportActualWorkDuration2(performance_hint_session_, work_duration_);
+// #endif
+//     } else {
+//         ALOGI("AdpfGpu::reportGpuWorkDuration performance_hint_manager_ is null : %p", performance_hint_manager_);
+//     }
+// }
