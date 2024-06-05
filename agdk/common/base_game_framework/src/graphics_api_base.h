@@ -64,6 +64,8 @@ class GraphicsAPIBase {
 
  protected:
   GraphicsAPIBase() {}
+
+  DisplayManager::DisplaySwapInterval swapchain_interval_;
 };
 
 } // base_game_framework

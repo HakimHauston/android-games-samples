@@ -40,7 +40,7 @@ GraphicsAPIGLES::GraphicsAPIGLES()
   , feature_flags_(DisplayManager::kNo_GLES_Support)
   , swapchain_format_()
   , swapchain_resolution_(0, 0, 0, DisplayManager::kDisplay_Orientation_Landscape)
-  , swapchain_interval_(DisplayManager::kDisplay_Swap_Interval_60FPS)
+  // , swapchain_interval_(DisplayManager::kDisplay_Swap_Interval_60FPS)
   , swapchain_frame_count_(0)
   , swapchain_present_mode_(DisplayManager::kSwapchain_Present_Fifo)
   , egl_config_(nullptr)
@@ -48,6 +48,7 @@ GraphicsAPIGLES::GraphicsAPIGLES()
   , egl_surface_(EGL_NO_SURFACE)
   , egl_context_(EGL_NO_CONTEXT)
   , srgb_framebuffer_support_(false) {
+    swapchain_interval_ = DisplayManager::kDisplay_Swap_Interval_60FPS;
 }
 
 GraphicsAPIGLES::~GraphicsAPIGLES() {
@@ -469,7 +470,7 @@ DisplayManager::InitSwapchainResult GraphicsAPIGLES::InitSwapchain(
   if (swapchain_frame_count_ == 0 && swapchain_frame_count == kSwapchain_frame_count_gles) {
     swapchain_format_ = display_format;
     swapchain_resolution_ = display_resolution;
-    swapchain_interval_ = display_swap_interval;
+    swapchain_interval_ = display_swap_interval; // FORCE_FPS: we need this
     swapchain_frame_count_ = swapchain_frame_count;
     swapchain_present_mode_ = present_mode;
 

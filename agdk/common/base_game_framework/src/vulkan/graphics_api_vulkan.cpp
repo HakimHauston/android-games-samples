@@ -65,7 +65,7 @@ GraphicsAPIVulkan::GraphicsAPIVulkan()
       present_queue_index_(0),
       swapchain_format_(),
       swapchain_resolution_(0, 0, 0, DisplayManager::kDisplay_Orientation_Landscape),
-      swapchain_interval_(DisplayManager::kDisplay_Swap_Interval_60FPS),
+      // swapchain_interval_(DisplayManager::kDisplay_Swap_Interval_60FPS),
       swapchain_min_frames_(0),
       swapchain_max_frames_(0),
       swapchain_present_modes_(0),
@@ -87,6 +87,7 @@ GraphicsAPIVulkan::GraphicsAPIVulkan()
       surface_capabilities_{},
       allocator_(VK_NULL_HANDLE),
       use_physical_device_properties2_(false) {
+        swapchain_interval_ = DisplayManager::kDisplay_Swap_Interval_60FPS;
 }
 
 GraphicsAPIVulkan::~GraphicsAPIVulkan() {
@@ -572,7 +573,7 @@ DisplayManager::InitSwapchainResult GraphicsAPIVulkan::InitSwapchain(
       vk_physical_device_, vk_surface_);
   swapchain_format_ = display_format;
   swapchain_resolution_ = display_resolution;
-  swapchain_interval_ = display_swap_interval;
+  swapchain_interval_ = display_swap_interval; // FORCE_FPS: we need this
   swapchain_info_.swapchain_present_mode_ = kPresentModes[present_mode];
   swapchain_info_.swapchain_image_count_ = swapchain_frame_count;
 
