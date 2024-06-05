@@ -165,6 +165,9 @@ bool PlatformUtilGLES::PlatformInitSwapchain(const uint64_t swap_interval) {
   bool success = SwappyGL_init(PlatformUtilAndroid::GetMainThreadJNIEnv(), PlatformUtilAndroid::GetActivityClassObject());
   if (success) {
     ALOGI("InitSwapchain GLES PlatformInitSwapchain display_swap_interval: %" PRIu64 " SWAPPY_SWAP_60FPS %ld SWAPPY_SWAP_30FPS %ld", swap_interval, SWAPPY_SWAP_60FPS, SWAPPY_SWAP_30FPS);
+    // SwappyGL_setSwapIntervalNS(SWAPPY_SWAP_30FPS); // FORCE_FPS 30FPS
+    // SwappyGL_setSwapIntervalNS(SWAPPY_SWAP_60FPS); // FORCE_FPS 60FPS
+    // SwappyGL_setSwapIntervalNS(8333333); // FORCE_FPS 120FPS
     SwappyGL_setSwapIntervalNS(swap_interval);
     SwappyGL_setWindow(PlatformUtilAndroid::GetNativeWindow());
   }
