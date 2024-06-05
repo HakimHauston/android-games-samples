@@ -17,6 +17,9 @@
 #include "graphics_api_gles.h"
 #include "debug_manager.h"
 #include "platform_util_gles.h"
+#include "swappy/swappy_common.h"
+
+#include "common.hpp"
 
 namespace base_game_framework {
 
@@ -469,6 +472,8 @@ DisplayManager::InitSwapchainResult GraphicsAPIGLES::InitSwapchain(
     swapchain_interval_ = display_swap_interval;
     swapchain_frame_count_ = swapchain_frame_count;
     swapchain_present_mode_ = present_mode;
+
+    ALOGI("InitSwapchain GLES display_swap_interval: %" PRIu64 " SWAPPY_SWAP_60FPS %ld SWAPPY_SWAP_30FPS %ld", display_swap_interval, SWAPPY_SWAP_60FPS, SWAPPY_SWAP_30FPS);
 
     egl_surface_ = InitializeEGLSurface(swapchain_format_);
     if (egl_surface_ != EGL_NO_SURFACE) {

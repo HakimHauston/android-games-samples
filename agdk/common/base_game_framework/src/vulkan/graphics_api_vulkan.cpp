@@ -19,6 +19,7 @@
 #include "graphics_api_vulkan_utils.h"
 #include "platform_util_vulkan.h"
 #include <vector>
+#include "swappy/swappy_common.h"
 
 //#include <vulkan/vulkan.hpp>
 #include "common.hpp"
@@ -533,6 +534,7 @@ DisplayManager::InitSwapchainResult GraphicsAPIVulkan::InitSwapchain(
       break;
     }
   }
+  ALOGI("InitSwapchain VK display_swap_interval: %" PRIu64 " SWAPPY_SWAP_60FPS %ld SWAPPY_SWAP_30FPS %ld", display_swap_interval, SWAPPY_SWAP_60FPS, SWAPPY_SWAP_30FPS);
   if (!found_interval) {
     DebugManager::Log(DebugManager::kLog_Channel_Default,
                       DebugManager::kLog_Level_Error,
