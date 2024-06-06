@@ -620,6 +620,10 @@ class DisplayManager {
  */
   void HandlePlatformDisplayChange(const DisplayChangeMessage& change_message);
 
+/**
+ */
+ DisplayManager::DisplaySwapInterval GetSwapchainInterval();
+
  private:
   DisplayManager();
 

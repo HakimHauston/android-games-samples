@@ -63,6 +63,7 @@ AdpfGpu::~AdpfGpu()
 void AdpfGpu::initializePerformanceHintManager(int32_t *thread_ids, size_t thread_size, int64_t target_work_duration)
 {
     ALOGI("AdpfGpu::initializePerformanceHintManager %d", __ANDROID_API__);
+    target_work_duration_ = target_work_duration;
 #if __ANDROID_API__ >= 35
     performance_hint_manager_ = APerformanceHint_getManager();
     performance_hint_session_ = APerformanceHint_createSession(performance_hint_manager_, thread_ids, thread_size, target_work_duration);
@@ -141,6 +142,27 @@ void AdpfGpu::setActualTotalDurationNanos(int64_t cpu_duration)
 #endif
     } else {
         ALOGI("AdpfGpu::setActualTotalDurationNanos performance_hint_manager_ = %p work_duration_ = %p", performance_hint_manager_, work_duration_);
+    }
+}
+
+void AdpfGpu::updateTargetWorkDuration(int64_t target_work_duration)
+{
+    // ALOGI("AdpfGpu::updateTargetWorkDuration %" PRId64 " == %" PRId64 "", target_work_duration_, target_work_duration);
+    if ( performance_hint_manager_ != nullptr && 
+        performance_hint_session_ != nullptr && work_duration_ != nullptr ) {
+#if __ANDROID_API__ >= 35
+        if ( target_work_duration_ != target_work_duration ) {
+            // ALOGI("AdpfGpu::updateTargetWorkDuration %" PRIu64 "", target_work_duration);
+            int result = APerformanceHint_updateTargetWorkDuration(performance_hint_session_, target_work_duration);
+            if ( result == 0 ) {
+                // SUCCESS
+                target_work_duration_ = target_work_duration;
+            }
+            ALOGI("AdpfGpu::updateTargetWorkDuration %" PRIu64 " RESULT: %d", target_work_duration, result);
+        }
+#endif
+    } else {
+        ALOGI("AdpfGpu::updateTargetWorkDuration performance_hint_manager_ = %p work_duration_ = %p", performance_hint_manager_, work_duration_);
     }
 }
 

@@ -175,6 +175,10 @@ void RendererVk::retrieveTime()
   // AdpfGpu::getInstance().reportGpuWorkDuration(gpu_work_duration);
   AdpfGpu::getInstance().setActualGpuDurationNanos(gpu_work_duration);
   AdpfGpu::getInstance().reportActualWorkDuration();
+
+  DisplayManager& display_manager = DisplayManager::GetInstance();
+  int64_t swapchainInterval = display_manager.GetSwapchainInterval();
+  AdpfGpu::getInstance().updateTargetWorkDuration(swapchainInterval);
 }
 
 void RendererVk::testQueryTimer()

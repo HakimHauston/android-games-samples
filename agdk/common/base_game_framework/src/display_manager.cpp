@@ -319,4 +319,11 @@ bool DisplayManager::SetSwapchainChangedCallback(SwapchainChangedCallback callba
   return false;
 }
 
+DisplayManager::DisplaySwapInterval DisplayManager::GetSwapchainInterval() {
+  if (active_api_ != kGraphicsAPI_None && api_->GetAPIStatus() == kGraphicsAPI_Active) {
+    return api_->GetSwapchainInterval();
+  }
+  return DisplayManager::DisplaySwapInterval::kDisplay_Swap_Interval_30FPS;
+}
+
 } // namespace base_game_framework

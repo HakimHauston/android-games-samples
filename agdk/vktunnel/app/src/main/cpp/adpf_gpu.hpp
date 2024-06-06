@@ -38,6 +38,7 @@ class AdpfGpu {
 
         bool gpu_timestamp_period_set_;
         float gpu_timestamp_period_;
+        int64_t target_work_duration_;
     public:
         ~AdpfGpu();
 
@@ -45,6 +46,8 @@ class AdpfGpu {
             static AdpfGpu instance;
             return instance;
         }
+
+        int64_t getTargetWorkDuration() { return target_work_duration_; }
 
         void initializePerformanceHintManager(int32_t *thread_ids, size_t thread_size, int64_t target_work_duration = DEFAULT_TARGET_NS);
         void uninitializePerformanceHintManager();
@@ -55,6 +58,7 @@ class AdpfGpu {
         void setActualCpuDurationNanos(int64_t cpu_duration);
         void setActualGpuDurationNanos(int64_t gpu_duration);
         void setActualTotalDurationNanos(int64_t cpu_duration);
+        void updateTargetWorkDuration(int64_t target_work_duration);
         void reportActualWorkDuration();
 
         // void reportGpuWorkDuration(int64_t work_duration);

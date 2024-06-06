@@ -276,6 +276,10 @@ void RendererGLES::listFeaturesAvailable() {
     AdpfGpu::getInstance().setActualGpuDurationNanos(workDuration);
     AdpfGpu::getInstance().reportActualWorkDuration();
 
+    DisplayManager& display_manager = DisplayManager::GetInstance();
+    int64_t swapchainInterval = display_manager.GetSwapchainInterval();
+    AdpfGpu::getInstance().updateTargetWorkDuration(swapchainInterval);
+
     ALOGI("RendererGLES::EndQueryTimer END %" PRIu64 "", workDuration);
   }
 

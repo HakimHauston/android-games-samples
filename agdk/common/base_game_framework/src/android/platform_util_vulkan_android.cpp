@@ -46,6 +46,7 @@ bool PlatformUtilVulkan::ActivateSwapchain(VkPhysicalDevice physical_device,
     // SwappyVk_setSwapIntervalNS(device, swapchain, SWAPPY_SWAP_30FPS); // FORCE_FPS 60FPS
     // SwappyVk_setSwapIntervalNS(device, swapchain, SWAPPY_SWAP_60FPS); // FORCE_FPS 60FPS
     // SwappyVk_setSwapIntervalNS(device, swapchain, 8333333); // FORCE_FPS 120FPS
+    // SwappyVk_setSwapIntervalNS(device, swapchain, 4166666); // FORCE_FPS 240FPS
     SwappyVk_setSwapIntervalNS(device, swapchain, swap_interval);
   }
   return success;
