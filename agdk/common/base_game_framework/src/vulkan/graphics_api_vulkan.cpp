@@ -573,6 +573,7 @@ DisplayManager::InitSwapchainResult GraphicsAPIVulkan::InitSwapchain(
       vk_physical_device_, vk_surface_);
   swapchain_format_ = display_format;
   swapchain_resolution_ = display_resolution;
+  ALOGI("updateSwapchainInterval Vk %" PRId64 " -> %" PRId64 "", swapchain_interval_, display_swap_interval);
   swapchain_interval_ = display_swap_interval; // FORCE_FPS: we need this
   swapchain_info_.swapchain_present_mode_ = kPresentModes[present_mode];
   swapchain_info_.swapchain_image_count_ = swapchain_frame_count;

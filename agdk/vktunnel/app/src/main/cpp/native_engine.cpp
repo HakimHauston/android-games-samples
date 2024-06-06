@@ -179,6 +179,7 @@ bool NativeEngine::CreateSwapchain() {
 
     if (found_display_format) {
         mDisplayFormat = display_format;
+        ALOGI("updateSwapchainInterval %" PRId64 "", swapchain_configurations->display_swap_intervals[0]); // FORCE_FPS: DYNAMIC SWAPCHAIN INTERVAL
         const DisplayManager::InitSwapchainResult swapchain_result = display_manager.InitSwapchain(
             display_format, swapchain_configurations->display_resolutions[0],
             swapchain_configurations->display_swap_intervals[0],

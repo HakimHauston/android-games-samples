@@ -470,6 +470,7 @@ DisplayManager::InitSwapchainResult GraphicsAPIGLES::InitSwapchain(
   if (swapchain_frame_count_ == 0 && swapchain_frame_count == kSwapchain_frame_count_gles) {
     swapchain_format_ = display_format;
     swapchain_resolution_ = display_resolution;
+    ALOGI("updateSwapchainInterval GLES %" PRId64 " -> %" PRId64 "", swapchain_interval_, display_swap_interval);
     swapchain_interval_ = display_swap_interval; // FORCE_FPS: we need this
     swapchain_frame_count_ = swapchain_frame_count;
     swapchain_present_mode_ = present_mode;
