@@ -87,7 +87,7 @@ GraphicsAPIVulkan::GraphicsAPIVulkan()
       surface_capabilities_{},
       allocator_(VK_NULL_HANDLE),
       use_physical_device_properties2_(false) {
-        swapchain_interval_ = DisplayManager::kDisplay_Swap_Interval_60FPS;
+        swapchain_interval_ = DisplayManager::kDisplay_Swap_Interval_240FPS;
 }
 
 GraphicsAPIVulkan::~GraphicsAPIVulkan() {
@@ -164,7 +164,7 @@ void GraphicsAPIVulkan::QueryCapabilities() {
             if (!display_formats_.empty() && !display_resolutions_.empty()) {
               swapchain_format_ = display_formats_[0];
               swapchain_resolution_ = display_resolutions_[0];
-              swapchain_interval_ = DisplayManager::kDisplay_Swap_Interval_60FPS;
+              // swapchain_interval_ = DisplayManager::kDisplay_Swap_Interval_60FPS; // FORCE_FPS: bug? this is accidentally fixed to 60FPS for Vulkan
               if (CreateSwapchain(queue_indices)) {
                 PlatformUtilVulkan::GetRefreshRates(vk_physical_device_, vk_device_,
                                                     vk_swapchain_, vk_present_queue_,
@@ -573,8 +573,8 @@ DisplayManager::InitSwapchainResult GraphicsAPIVulkan::InitSwapchain(
       vk_physical_device_, vk_surface_);
   swapchain_format_ = display_format;
   swapchain_resolution_ = display_resolution;
-  ALOGI("updateSwapchainInterval Vk %" PRId64 " -> %" PRId64 "", swapchain_interval_, display_swap_interval);
-  swapchain_interval_ = display_swap_interval; // FORCE_FPS: we need this
+  ALOGI("updateSwapchainInterval VK DISABLED %" PRId64 " -> %" PRId64 "", swapchain_interval_, display_swap_interval);
+  //swapchain_interval_ = display_swap_interval; // FORCE_FPS: disable dynamic fps
   swapchain_info_.swapchain_present_mode_ = kPresentModes[present_mode];
   swapchain_info_.swapchain_image_count_ = swapchain_frame_count;
 
