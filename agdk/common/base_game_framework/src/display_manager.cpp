@@ -29,7 +29,6 @@ namespace base_game_framework {
 static constexpr DisplayManager::SwapchainHandle kDefault_swapchain_handle = 123;
 
 static constexpr uint64_t kSwap_interval_constants[] = {
-    DisplayManager::kDisplay_Swap_Interval_480FPS,
     DisplayManager::kDisplay_Swap_Interval_240FPS,
     DisplayManager::kDisplay_Swap_Interval_165FPS,
     DisplayManager::kDisplay_Swap_Interval_120FPS,
