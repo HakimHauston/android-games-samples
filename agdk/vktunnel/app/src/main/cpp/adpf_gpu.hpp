@@ -56,7 +56,7 @@ class AdpfGpu {
 
         void setWorkPeriodStartTimestampNanos(int64_t cpu_timestamp);
         void setActualCpuDurationNanos(int64_t cpu_duration);
-        void setActualGpuDurationNanos(int64_t gpu_duration);
+        void setActualGpuDurationNanos(int64_t gpu_duration, bool apply_multiplier);
         void setActualTotalDurationNanos(int64_t cpu_duration);
         void updateTargetWorkDuration(int64_t target_work_duration);
         void reportActualWorkDuration();

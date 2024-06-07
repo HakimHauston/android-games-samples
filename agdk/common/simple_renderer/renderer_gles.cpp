@@ -244,7 +244,7 @@ void RendererGLES::listFeaturesAvailable() {
     // ALOGI("RendererGLES::EndQueryTimer disjointOccured: %d", disjointOccurred);
 
     glGetQueryObjectuiv(queries, GL_QUERY_RESULT, &timeElapsed);
-    ALOGI("RendererGLES::EndQueryTimer disjointOccured: %d, timeElapsed %d", disjointOccurred, timeElapsed);
+    //ALOGI("RendererGLES::EndQueryTimer disjointOccured: %d, timeElapsed %d", disjointOccurred, timeElapsed);
 
 //     if (!disjointOccurred) {
 //         glGetQueryObjectuiv(queries, GL_QUERY_RESULT, &timeElapsed);
@@ -272,8 +272,9 @@ void RendererGLES::listFeaturesAvailable() {
     // waiting for the GPU to finish rendering.
 
     int64_t workDuration = (int64_t) timeElapsed;
+    ALOGI("RendererGLES::EndQueryTimer disjointOccured: %d, timeElapsed %d %" PRId64 "", disjointOccurred, timeElapsed, workDuration);
     // AdpfGpu::getInstance().reportGpuWorkDuration(workDuration);
-    AdpfGpu::getInstance().setActualGpuDurationNanos(workDuration);
+    AdpfGpu::getInstance().setActualGpuDurationNanos(workDuration, false);
     AdpfGpu::getInstance().reportActualWorkDuration();
 
     DisplayManager& display_manager = DisplayManager::GetInstance();

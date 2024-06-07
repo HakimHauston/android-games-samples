@@ -173,7 +173,7 @@ void RendererVk::retrieveTime()
   int64_t gpu_work_duration = (int64_t) duration;
   // int64_t gpu_work_duration = (int64_t) time;
   // AdpfGpu::getInstance().reportGpuWorkDuration(gpu_work_duration);
-  AdpfGpu::getInstance().setActualGpuDurationNanos(gpu_work_duration);
+  AdpfGpu::getInstance().setActualGpuDurationNanos(gpu_work_duration, true);
   AdpfGpu::getInstance().reportActualWorkDuration();
 
   DisplayManager& display_manager = DisplayManager::GetInstance();
