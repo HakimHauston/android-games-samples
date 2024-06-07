@@ -206,6 +206,8 @@ class DisplayManager {
 
   /** @brief Enum of possible display frame swap intervals */
   enum DisplaySwapInterval : uint64_t {
+    /** 480 frames per second swap interval */
+    kDisplay_Swap_Interval_480FPS = 2083333L,
     /** 240 frames per second swap interval */
     kDisplay_Swap_Interval_240FPS = 4166666L,
     /** 165 frames per second swap interval */

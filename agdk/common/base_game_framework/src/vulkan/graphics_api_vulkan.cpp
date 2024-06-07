@@ -87,7 +87,7 @@ GraphicsAPIVulkan::GraphicsAPIVulkan()
       surface_capabilities_{},
       allocator_(VK_NULL_HANDLE),
       use_physical_device_properties2_(false) {
-        swapchain_interval_ = DisplayManager::kDisplay_Swap_Interval_240FPS;
+        swapchain_interval_ = DisplayManager::kDisplay_Swap_Interval_480FPS;
 }
 
 GraphicsAPIVulkan::~GraphicsAPIVulkan() {
