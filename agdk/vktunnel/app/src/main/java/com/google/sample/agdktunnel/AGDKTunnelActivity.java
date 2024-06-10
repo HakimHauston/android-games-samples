@@ -28,10 +28,14 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager.LayoutParams;
 
+import android.provider.Settings;
+
 import androidx.annotation.Keep;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+
+import androidx.window.layout.FoldingFeature;
 
 import com.google.android.games.basegameframework.BaseGameFrameworkUtils;
 import com.google.androidgamesdk.GameActivity;
@@ -46,6 +50,9 @@ public class AGDKTunnelActivity extends GameActivity {
     private final String mPlayGamesPCSystemFeature =
             "com.google.android.play.feature.HPE_EXPERIENCE";
     private static final String TAG = "AGDKTunnelActivity";
+
+    private WindowInfoTrackerCallbackAdapter windowInfoTracker;
+    private final LayoutStateChangeCallback layoutStateChangeCallback = new LayoutStateChangeCallback();
 
     // Some code to load our native library:
     static {
@@ -91,6 +98,43 @@ public class AGDKTunnelActivity extends GameActivity {
             InputMappingClient inputMappingClient = Input.getInputMappingClient(this);
             inputMappingClient.registerRemappingListener(new InputSDKRemappingListener());
             inputMappingClient.setInputMappingProvider(inputMappingProvider);
+        }
+
+        // Settings.System.putInt(this.getContentResolver(), Settings.System.ACCELEROMETER_ROTATION, 0);
+        windowInfoTracker = new WindowInfoTrackerCallbackAdapter(WindowInfoTracker.getOrCreate(this));
+    }
+
+    boolean isTableTopPosture(FoldingFeature foldFeature) {
+        return (foldFeature != null) &&
+               (foldFeature.getState() == FoldingFeature.State.HALF_OPENED) &&
+               (foldFeature.getOrientation() == FoldingFeature.Orientation.HORIZONTAL);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        windowInfoTracker.addWindowLayoutInfoListener(
+                this, Runnable::run, layoutStateChangeCallback);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        windowInfoTracker.removeWindowLayoutInfoListener(layoutStateChangeCallback);
+    }
+
+    class LayoutStateChangeCallback implements Consumer<WindowLayoutInfo> {
+        @Override
+        public void accept(WindowLayoutInfo newLayoutInfo) {
+            // Use newLayoutInfo to update the Layout
+            List<DisplayFeature> displayFeatures = newLayoutInfo.getDisplayFeatures();
+            for (DisplayFeature feature : displayFeatures) {
+                if (feature instanceof FoldingFeature) {
+                    // Use information from the feature object
+                    boolean bTabletop = isTableTopPosture(feature);
+                    Log.d(TAG, "isTabletop: " + bTabletop);
+                }
+            }
         }
     }
 
