@@ -142,6 +142,7 @@ dependencies {
 
     //implementation "androidx.window:window:$windowmanager_version"
     implementation "androidx.window:window:1.3.0"
+    implementation "androidx.window:window-java:1.2.0"
 
     // Needed to use lifecycleScope to collect the WindowLayoutInfo flow
     //implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.6.2"
