@@ -19,6 +19,7 @@ import static android.view.inputmethod.EditorInfo.IME_ACTION_NONE;
 import static android.view.inputmethod.EditorInfo.IME_FLAG_NO_FULLSCREEN;
 
 import android.app.Activity;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Build.VERSION;
@@ -121,6 +122,9 @@ public class AGDKTunnelActivity extends GameActivity {
             inputMappingClient.registerRemappingListener(new InputSDKRemappingListener());
             inputMappingClient.setInputMappingProvider(inputMappingProvider);
         }
+
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+//        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
 
         windowInfoTrackerCallbackAdapter = new WindowInfoTrackerCallbackAdapter(WindowInfoTracker.Companion.getOrCreate(this));
         windowMetricsCalculator = WindowMetricsCalculator.getOrCreate();
