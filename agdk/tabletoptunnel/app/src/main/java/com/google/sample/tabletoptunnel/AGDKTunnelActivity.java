@@ -19,6 +19,7 @@ import static android.view.inputmethod.EditorInfo.IME_ACTION_NONE;
 import static android.view.inputmethod.EditorInfo.IME_FLAG_NO_FULLSCREEN;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -30,7 +31,9 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.InputType;
 import android.util.Log;
+import android.view.Display;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
 
 import androidx.annotation.Keep;
@@ -123,7 +126,7 @@ public class AGDKTunnelActivity extends GameActivity {
             inputMappingClient.setInputMappingProvider(inputMappingProvider);
         }
 
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+//        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
 //        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
 
         windowInfoTrackerCallbackAdapter = new WindowInfoTrackerCallbackAdapter(WindowInfoTracker.Companion.getOrCreate(this));
@@ -337,6 +340,9 @@ public class AGDKTunnelActivity extends GameActivity {
 
             Log.d(TAG, "FLOW WindowMetrics current: " + currentMetrics.getBounds().toString() + " windowInsets: " + currentMetrics.getWindowInsets().toWindowInsets().toString());
             Log.d(TAG, "FLOW WindowMetrics max: " + maxMetrics.getBounds().toString() + " windowInsets: " + maxMetrics.getWindowInsets().toWindowInsets().toString());
+
+            Display display = this.activity.getDisplay();
+            Log.d(TAG, "FLOW Display.getRotation: " + display.getRotation());
 
             /*
                 2024-02-08 19:17:36.628 32006-32006 AGDKTunnelActivity      com.google.sample.tabletoptunnel     D  LayoutStateChangeCallback accept
