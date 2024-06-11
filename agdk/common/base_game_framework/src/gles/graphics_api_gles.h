@@ -46,6 +46,8 @@ class GraphicsAPIGLES : public GraphicsAPIBase {
 
   virtual void QueryAvailability();
 
+  virtual bool CheckTimestampSupport();
+
   virtual bool InitializeGraphicsAPI();
   virtual void ShutdownGraphicsAPI();
 
@@ -97,7 +99,7 @@ class GraphicsAPIGLES : public GraphicsAPIBase {
   DisplayManager::GLESFeatureFlags feature_flags_;
   DisplayManager::DisplayFormat swapchain_format_;
   DisplayManager::DisplayResolution swapchain_resolution_;
-  DisplayManager::DisplaySwapInterval swapchain_interval_;
+  //DisplayManager::DisplaySwapInterval swapchain_interval_;
   uint32_t swapchain_frame_count_;
   DisplayManager::SwapchainPresentMode swapchain_present_mode_;
   EGLConfig egl_config_;

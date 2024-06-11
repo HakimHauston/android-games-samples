@@ -62,6 +62,12 @@ class RendererVk : public Renderer {
 
   virtual bool GetFeatureAvailable(const RendererFeature feature);
 
+  bool checkTimestampSupport();
+  void retrieveTime();
+  virtual void testQueryTimer();
+  virtual void StartQueryTimer();
+  virtual void EndQueryTimer();
+
   virtual void BeginFrame(
       const base_game_framework::DisplayManager::SwapchainHandle swapchain_handle);
   virtual void EndFrame();
@@ -160,6 +166,12 @@ class RendererVk : public Renderer {
   VkCommandBuffer staging_command_buffer_;
 
   uint32_t in_flight_frame_count_;
+
+  // GPU_PERF_HINT
+  std::chrono::time_point<std::chrono::high_resolution_clock> cpu_clock_start_;
+  VkCommandBuffer query_command_buffer_;
+  VkQueryPool query_pool_;
+  //VkBuffer query_buffer_;
 
   // Active frame resources
   VkCommandBuffer render_command_buffer_;

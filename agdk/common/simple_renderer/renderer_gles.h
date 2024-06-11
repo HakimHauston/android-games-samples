@@ -20,7 +20,7 @@
 #include "renderer_interface.h"
 #include "renderer_resources.h"
 #include <EGL/egl.h>
-#include <GLES3/gl3.h>
+//#include <GLES3/gl3.h>
 
 namespace simple_renderer {
 
@@ -33,7 +33,12 @@ class RendererGLES : public Renderer {
   RendererGLES();
   virtual ~RendererGLES();
 
+  void listFeaturesAvailable();
   virtual bool GetFeatureAvailable(const RendererFeature feature);
+
+  virtual void testQueryTimer();
+  virtual void StartQueryTimer();
+  virtual void EndQueryTimer();
 
   virtual void BeginFrame(
       const base_game_framework::DisplayManager::SwapchainHandle swapchain_handle);
@@ -86,6 +91,11 @@ class RendererGLES : public Renderer {
 
  private:
   void EndRenderPass();
+
+  bool first_call_;
+  bool timestamp_query_available_;
+
+  std::chrono::time_point<std::chrono::high_resolution_clock> cpu_clock_start_;
 
   RendererResources resources_;
 

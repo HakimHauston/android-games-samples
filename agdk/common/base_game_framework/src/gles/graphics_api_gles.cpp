@@ -17,6 +17,9 @@
 #include "graphics_api_gles.h"
 #include "debug_manager.h"
 #include "platform_util_gles.h"
+#include "swappy/swappy_common.h"
+
+#include "common.hpp"
 
 namespace base_game_framework {
 
@@ -37,7 +40,7 @@ GraphicsAPIGLES::GraphicsAPIGLES()
   , feature_flags_(DisplayManager::kNo_GLES_Support)
   , swapchain_format_()
   , swapchain_resolution_(0, 0, 0, DisplayManager::kDisplay_Orientation_Landscape)
-  , swapchain_interval_(DisplayManager::kDisplay_Swap_Interval_60FPS)
+  // , swapchain_interval_(DisplayManager::kDisplay_Swap_Interval_60FPS)
   , swapchain_frame_count_(0)
   , swapchain_present_mode_(DisplayManager::kSwapchain_Present_Fifo)
   , egl_config_(nullptr)
@@ -45,6 +48,7 @@ GraphicsAPIGLES::GraphicsAPIGLES()
   , egl_surface_(EGL_NO_SURFACE)
   , egl_context_(EGL_NO_CONTEXT)
   , srgb_framebuffer_support_(false) {
+    swapchain_interval_ = DisplayManager::kDisplay_Swap_Interval_240FPS;
 }
 
 GraphicsAPIGLES::~GraphicsAPIGLES() {
@@ -57,6 +61,11 @@ void GraphicsAPIGLES::QueryAvailability() {
   if (native_window != nullptr) {
     QueryCapabilities();
   }
+}
+
+bool GraphicsAPIGLES::CheckTimestampSupport() {
+  // TODO: GPU_PERF_HINT
+  return false;
 }
 
 void GraphicsAPIGLES::QueryCapabilities() {
@@ -461,9 +470,12 @@ DisplayManager::InitSwapchainResult GraphicsAPIGLES::InitSwapchain(
   if (swapchain_frame_count_ == 0 && swapchain_frame_count == kSwapchain_frame_count_gles) {
     swapchain_format_ = display_format;
     swapchain_resolution_ = display_resolution;
-    swapchain_interval_ = display_swap_interval;
+    ALOGI("updateSwapchainInterval GLES DISABLED %" PRId64 " -> %" PRId64 "", swapchain_interval_, display_swap_interval);
+    //swapchain_interval_ = display_swap_interval; // FORCE_FPS: disable dynamic fps 
     swapchain_frame_count_ = swapchain_frame_count;
     swapchain_present_mode_ = present_mode;
+
+    ALOGI("InitSwapchain GLES display_swap_interval: %" PRIu64 " SWAPPY_SWAP_60FPS %ld SWAPPY_SWAP_30FPS %ld", display_swap_interval, SWAPPY_SWAP_60FPS, SWAPPY_SWAP_30FPS);
 
     egl_surface_ = InitializeEGLSurface(swapchain_format_);
     if (egl_surface_ != EGL_NO_SURFACE) {
