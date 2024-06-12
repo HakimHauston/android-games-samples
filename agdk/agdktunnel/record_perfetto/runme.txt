@@ -1,0 +1,1 @@
+./record_android_trace -c config.pbtx -o trace_file.perfetto-trace 

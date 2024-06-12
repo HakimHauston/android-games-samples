@@ -153,7 +153,7 @@ target_link_libraries(game
         games-frame-pacing::swappy_static
         atomic
         EGL
-        GLESv2
+        GLESv3
         jnigraphics
         log
         z)

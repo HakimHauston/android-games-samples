@@ -19,12 +19,18 @@
 #include "graphics_api_vulkan_utils.h"
 #include "platform_util_vulkan.h"
 #include <vector>
+#include "swappy/swappy_common.h"
+
+//#include <vulkan/vulkan.hpp>
+#include "common.hpp"
+
+#include "adpf_gpu.hpp"
 
 namespace base_game_framework {
 
 static constexpr DisplayManager::SwapchainFrameHandle kDefault_swapchain_handle = 1;
 
-bool GraphicsAPIVulkan::enable_validation_layers_ = false;
+bool GraphicsAPIVulkan::enable_validation_layers_ = true;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 messengerCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -59,7 +65,7 @@ GraphicsAPIVulkan::GraphicsAPIVulkan()
       present_queue_index_(0),
       swapchain_format_(),
       swapchain_resolution_(0, 0, 0, DisplayManager::kDisplay_Orientation_Landscape),
-      swapchain_interval_(DisplayManager::kDisplay_Swap_Interval_60FPS),
+      // swapchain_interval_(DisplayManager::kDisplay_Swap_Interval_60FPS),
       swapchain_min_frames_(0),
       swapchain_max_frames_(0),
       swapchain_present_modes_(0),
@@ -81,6 +87,7 @@ GraphicsAPIVulkan::GraphicsAPIVulkan()
       surface_capabilities_{},
       allocator_(VK_NULL_HANDLE),
       use_physical_device_properties2_(false) {
+        swapchain_interval_ = DisplayManager::kDisplay_Swap_Interval_240FPS;
 }
 
 GraphicsAPIVulkan::~GraphicsAPIVulkan() {
@@ -122,6 +129,17 @@ void GraphicsAPIVulkan::QueryAvailability() {
   }
 }
 
+bool GraphicsAPIVulkan::CheckTimestampSupport() {
+//  VkPhysicalDevice device = GetPhysicalDevice();
+//  VkPhysicalDeviceLimits device_limits = device->get_gpu().get_properties().limits;
+//  if (device_limits.timestampPeriod == 0)
+//  {
+//    return false;
+//  }
+//  return true;
+    return false;
+}
+
 void GraphicsAPIVulkan::QueryCapabilities() {
   use_physical_device_properties2_ = VulkanAPIUtils::GetUsePhysicalDeviceProperties2();
   // We need to create a temporary instance and surface in order to properly
@@ -146,7 +164,7 @@ void GraphicsAPIVulkan::QueryCapabilities() {
             if (!display_formats_.empty() && !display_resolutions_.empty()) {
               swapchain_format_ = display_formats_[0];
               swapchain_resolution_ = display_resolutions_[0];
-              swapchain_interval_ = DisplayManager::kDisplay_Swap_Interval_60FPS;
+              // swapchain_interval_ = DisplayManager::kDisplay_Swap_Interval_60FPS; // FORCE_FPS: bug? this is accidentally fixed to 60FPS for Vulkan
               if (CreateSwapchain(queue_indices)) {
                 PlatformUtilVulkan::GetRefreshRates(vk_physical_device_, vk_device_,
                                                     vk_swapchain_, vk_present_queue_,
@@ -223,6 +241,11 @@ void GraphicsAPIVulkan::QueryDeviceCapabilities(VkPhysicalDevice physical_device
                       "No vkGetPhysicalDeviceProperties2/KHR functions");
     return;
   }
+
+  // + GPU_PERF_HINT
+  AdpfGpu::getInstance().setGpuTimestampPeriod(device_properties.properties.limits.timestampPeriod);
+  ALOGI("GraphicsAPIVulkan::QueryDeviceCapabilities timestampPeriod: %f", device_properties.properties.limits.timestampPeriod); // 40.690105
+  // - GPU_PERF_HINT
 
   if (has_driver_properties) {
     driver_id_ = device_driver_properties.driverID;
@@ -512,6 +535,7 @@ DisplayManager::InitSwapchainResult GraphicsAPIVulkan::InitSwapchain(
       break;
     }
   }
+  ALOGI("InitSwapchain VK display_swap_interval: %" PRIu64 " SWAPPY_SWAP_60FPS %ld SWAPPY_SWAP_30FPS %ld", display_swap_interval, SWAPPY_SWAP_60FPS, SWAPPY_SWAP_30FPS);
   if (!found_interval) {
     DebugManager::Log(DebugManager::kLog_Channel_Default,
                       DebugManager::kLog_Level_Error,
@@ -549,7 +573,8 @@ DisplayManager::InitSwapchainResult GraphicsAPIVulkan::InitSwapchain(
       vk_physical_device_, vk_surface_);
   swapchain_format_ = display_format;
   swapchain_resolution_ = display_resolution;
-  swapchain_interval_ = display_swap_interval;
+  ALOGI("updateSwapchainInterval VK DISABLED %" PRId64 " -> %" PRId64 "", swapchain_interval_, display_swap_interval);
+  //swapchain_interval_ = display_swap_interval; // FORCE_FPS: disable dynamic fps
   swapchain_info_.swapchain_present_mode_ = kPresentModes[present_mode];
   swapchain_info_.swapchain_image_count_ = swapchain_frame_count;
 
@@ -813,6 +838,13 @@ bool GraphicsAPIVulkan::CreateDevice(bool is_preflight_check,
   device_create_info.enabledExtensionCount =
       static_cast<uint32_t>(required_device_extensions.size());
   device_create_info.ppEnabledExtensionNames = required_device_extensions.data();
+
+  // + GPU_HINT_API
+  VkPhysicalDeviceHostQueryResetFeatures resetFeatures;
+  resetFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES;
+  resetFeatures.pNext = nullptr;
+  resetFeatures.hostQueryReset = VK_TRUE;
+  device_create_info.pNext = &resetFeatures;
 
   std::vector<const char *> validation_layers = PlatformUtilVulkan::GetValidationLayers();
   if (enable_validation) {

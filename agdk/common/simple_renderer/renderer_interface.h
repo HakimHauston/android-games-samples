@@ -51,7 +51,8 @@ class Renderer {
    * if the device supports a particular feature
    */
   enum RendererFeature : int32_t {
-    kFeature_ASTC = 0 ///< Does the device support ASTC textures
+    kFeature_ASTC = 0, ///< Does the device support ASTC textures
+    kFeature_DisjointTimerQuery = 1, ///< Does the device support disjoint timer query needed for GPU PerfHint
   };
 
 /**
@@ -106,6 +107,10 @@ class Renderer {
  * @return true if supported, false if unsupported
  */
   virtual bool GetFeatureAvailable(const RendererFeature feature) = 0;
+
+  virtual void testQueryTimer() = 0;
+  virtual void StartQueryTimer() = 0;
+  virtual void EndQueryTimer() = 0;
 
 /**
  * @brief Tell the renderer to set up to begin rendering a frame of draw calls.

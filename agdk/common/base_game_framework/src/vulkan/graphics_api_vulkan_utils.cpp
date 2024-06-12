@@ -20,6 +20,8 @@
 #include <set>
 #include <string>
 
+#include "common.hpp"
+
 namespace base_game_framework {
 
 static constexpr VkFormat kColorFormatTableVk[DisplayManager::kDisplay_Pixel_Format_Count] = {
@@ -72,6 +74,8 @@ GraphicsAPIVulkan::QueueFamilyIndices VulkanAPIUtils::FindQueueFamilies(VkPhysic
     if (queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
       indices.graphics_family = i;
     }
+
+    ALOGI("GraphicsAPIVulkan::FindQueueFamilies timestampValidBits: %d", queue_family.timestampValidBits); // 64
 
     VkBool32 presentSupport = false;
     vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
