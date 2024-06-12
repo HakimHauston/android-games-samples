@@ -135,6 +135,7 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
      ${BGF_SRCS}
      ${SIMPLE_RENDERER_SRCS}
      ${native_wrappers}
+     adpf_gpu.cpp
      android_main.cpp
      anim.cpp
      ascii_to_geom.cpp

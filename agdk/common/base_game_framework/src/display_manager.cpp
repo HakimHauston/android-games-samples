@@ -29,6 +29,7 @@ namespace base_game_framework {
 static constexpr DisplayManager::SwapchainHandle kDefault_swapchain_handle = 123;
 
 static constexpr uint64_t kSwap_interval_constants[] = {
+    DisplayManager::kDisplay_Swap_Interval_240FPS,
     DisplayManager::kDisplay_Swap_Interval_165FPS,
     DisplayManager::kDisplay_Swap_Interval_120FPS,
     DisplayManager::kDisplay_Swap_Interval_90FPS,
@@ -317,6 +318,13 @@ bool DisplayManager::SetSwapchainChangedCallback(SwapchainChangedCallback callba
     return api_->SetSwapchainChangedCallback(callback, user_data);
   }
   return false;
+}
+
+DisplayManager::DisplaySwapInterval DisplayManager::GetSwapchainInterval() {
+  if (active_api_ != kGraphicsAPI_None && api_->GetAPIStatus() == kGraphicsAPI_Active) {
+    return api_->GetSwapchainInterval();
+  }
+  return DisplayManager::DisplaySwapInterval::kDisplay_Swap_Interval_30FPS;
 }
 
 } // namespace base_game_framework

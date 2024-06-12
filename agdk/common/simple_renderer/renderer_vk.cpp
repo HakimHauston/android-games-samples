@@ -25,6 +25,15 @@
 #include "renderer_vertex_buffer_vk.h"
 #include "display_manager.h"
 
+#include "vulkan/graphics_api_vulkan.h"
+
+#include "adpf_gpu.hpp"
+
+#include <inttypes.h>
+#include <chrono>
+
+#include "common.hpp"
+
 using namespace base_game_framework;
 
 namespace simple_renderer {
@@ -35,6 +44,7 @@ RendererVk& RendererVk::GetInstanceVk() {
 
 RendererVk::RendererVk() :
     staging_command_buffer_(VK_NULL_HANDLE),
+    query_command_buffer_(VK_NULL_HANDLE),
     render_command_buffer_(VK_NULL_HANDLE),
     active_extent_{0, 0},
     active_frame_pool_(VK_NULL_HANDLE),
@@ -75,6 +85,10 @@ RendererVk::RendererVk() :
   if (frame_handle != DisplayManager::kInvalid_swapchain_handle) {
     display_manager.GetSwapchainFrameResourcesVk(frame_handle, swap_, false);
   }
+
+  last_gpu_duration_ = 0;
+
+  SetupQueryTimer();
 }
 
 RendererVk::~RendererVk() {
@@ -112,6 +126,131 @@ bool RendererVk::GetFeatureAvailable(const RendererFeature feature) {
   return supported;
 }
 
+void RendererVk::retrieveTime()
+{
+  // vkGetQueryPoolResults(); device, queryPool, queryCount = 2, firstQuery, pData, dataSize, stride, flags
+  std::array<uint64_t, 2> resultBuffer;
+  vkDeviceWaitIdle(vk_.device);
+  VkResult result = vkGetQueryPoolResults(vk_.device, query_pool_, 0, 2, sizeof(uint64_t) * resultBuffer.size(), resultBuffer.data(), sizeof(uint64_t), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
+
+  // based on:
+  // https://github.com/nxp-imx/gtec-demo-framework/blob/master/DemoApps/Vulkan/GpuTimestamp/source/GpuTimestamp.cpp
+  const auto duration = resultBuffer[1] - resultBuffer[0];
+
+  // CPU_PERF_HINT
+  auto cpu_clock_end = std::chrono::high_resolution_clock::now();
+  auto cpu_clock_past = cpu_clock_end - cpu_clock_start_;
+  auto cpu_clock_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(cpu_clock_past).count();
+  int64_t duration_ns = static_cast<int64_t>(cpu_clock_duration);
+  AdpfGpu::getInstance().setActualCpuDurationNanos(duration_ns);
+  AdpfGpu::getInstance().setActualTotalDurationNanos(duration_ns);
+
+  int64_t gpu_work_duration = result == VK_SUCCESS ? (int64_t) duration : last_gpu_duration_;
+  AdpfGpu::getInstance().setActualGpuDurationNanos(gpu_work_duration, true);
+  AdpfGpu::getInstance().reportActualWorkDuration();
+  last_gpu_duration_ = gpu_work_duration;
+
+  DisplayManager& display_manager = DisplayManager::GetInstance();
+  int64_t swapchainInterval = display_manager.GetSwapchainInterval();
+  AdpfGpu::getInstance().updateTargetWorkDuration(swapchainInterval);
+}
+
+void RendererVk::SetupQueryTimer()
+{
+  // https://www.reddit.com/r/vulkan/comments/rn2k1d/vkcmdwritetimestamp_writes_the_same_time_before/?rdt=46277
+  // https://stackoverflow.com/questions/67358235/how-to-measure-execution-time-of-vulkan-pipeline
+  // https://github.com/nxp-imx/gtec-demo-framework/blob/master/DemoApps/Vulkan/GpuTimestamp/source/GpuTimestamp.cpp
+  ALOGI("RendererVk::SetupQueryTimer");
+
+  // To pay attention:
+  // VkPhysicalDeviceLimits::timestampComputeAndGraphics // must support
+  // VkPhysicalDeviceLimits::timestampPeriod => timestampPeriod is the number of nanoseconds required for a timestamp query to be incremented by 1.
+  
+  // vkCreateQueryPool(); VkQueryPoolCreateInfo::queryType = VK_QUERY_TYPE_TIMESTAMP
+  VkQueryPoolCreateInfo createInfo{};
+  createInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
+  createInfo.pNext = nullptr; // Optional
+  createInfo.flags = 0; // Reserved for future use, must be 0!
+
+  createInfo.queryType = VK_QUERY_TYPE_TIMESTAMP;
+  createInfo.queryCount = 2; // REVIEW
+  // createInfo.queryCount = mCommandBuffers.size() * 2; // REVIEW
+
+  // VkResult result = vkCreateQueryPool(mDevice, &createInfo, nullptr, &mTimeQueryPool);
+  // if (result != VK_SUCCESS)
+  // {
+  //     throw std::runtime_error("Failed to create time query pool!");
+  // }
+  VkResult result = vkCreateQueryPool(vk_.device, &createInfo, nullptr, &query_pool_);
+  if ( result == VK_SUCCESS ) {
+    ALOGI("RendererVk::SetupQueryTimer vkCreateQueryPool result SUCCESS: %d query_command_buffer_ %p", result, &query_command_buffer_);
+  } else {
+    ALOGI("RendererVk::SetupQueryTimer vkCreateQueryPool result FAILED: %d query_command_buffer_ %p", result, &query_command_buffer_);
+  }
+
+  // check if timestamps are supported
+
+  
+  
+  // vkGetQueryPoolResults(); device, queryPool, queryCount = 2, firstQuery, pData, dataSize, stride, flags
+  // flags: 
+  // VK_QUERY_RESULT_64_BIT, // use uint64_t instead of uint32_t to prevent overflow
+  // VK_QUERY_RESULT_WAIT_BIT, // CPU will wait until all queries are written
+  // VK_QUERY_RESULT_WITH_AVAILABILITY_BIT, // each frame you check if the value is available on the host and don’t issue new write command until you read previous so it’s quite possible that some frames may be missed
+  // in addition to query value a special availability value is written after the query value. The non-zero value means that the query is available.
+  // if nothing is said explicitly the size of the availability value is uint32_t. If VK_QUERY_RESULT_64_BIT is used the size of availability value is uint64_t.
+  // VK_QUERY_RESULT_PARTIAL_BIT // not used
+
+  // vkCmdWriteTimestamp(); // commandBuffer, pipelineStage, queryPool, query
+  // VkCommandBuffer
+  // VkPipelineStageFlagBits
+  // VkQueryPool
+  // uint32_t query
+  //// crashing //// vkCmdWriteTimestamp(render_command_buffer_, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, query_pool_, 0);
+  
+  // https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/vkCmdCopyQueryPoolResults.html
+  //// crashing //// vkCmdCopyQueryPoolResults(render_command_buffer_, query_pool_, 0, 1, query_buffer_, 0, 0, VK_QUERY_RESULT_64_BIT);
+
+}
+
+void RendererVk::StartQueryTimer()
+{
+  if ( render_command_buffer_ == VK_NULL_HANDLE ) {
+    ALOGE("RendererVk::StartQueryTimer render_command_buffer is NULL");
+    return;
+  }
+  if ( query_pool_ == VK_NULL_HANDLE ) {
+    ALOGE("RendererVk::StartQueryTimer query_pool is NULL");
+    return;
+  }
+
+  // CPU_PERF_HINT
+  cpu_clock_start_ = std::chrono::high_resolution_clock::now();
+  auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(cpu_clock_start_.time_since_epoch()).count();
+  AdpfGpu::getInstance().setWorkPeriodStartTimestampNanos(nanos);
+
+
+  // Queries must be reset after each individual use
+  // vkResetQueryPool(vk_.device, query_pool_, 0, 2);
+  vkCmdResetQueryPool(render_command_buffer_, query_pool_, 0, 2);
+
+  vkCmdWriteTimestamp(render_command_buffer_, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, query_pool_, 0);
+}
+
+void RendererVk::EndQueryTimer()
+{
+  if ( render_command_buffer_ == VK_NULL_HANDLE ) {
+    ALOGE("RendererVk::EndQueryTimer render_command_buffer is NULL");
+    return;
+  }
+  if ( query_pool_ == VK_NULL_HANDLE ) {
+    ALOGE("RendererVk::EndQueryTimer query_pool is NULL");
+    return;
+  }
+
+  vkCmdWriteTimestamp(render_command_buffer_, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, query_pool_, 1);
+}
+
 void RendererVk::BeginFrame(
     const base_game_framework::DisplayManager::SwapchainHandle swapchain_handle) {
   resources_.ProcessDeleteQueue();
@@ -142,6 +281,8 @@ void RendererVk::BeginFrame(
                                                              &command_buffer_begin_info);
   RENDERER_CHECK_VK(begin_command_result, "vkBeginCommandBuffer");
 
+  StartQueryTimer();
+
   // We enabled dynamic viewport and width in the pipeline object,
   // so set them at the beginning of our render command buffer
 
@@ -166,6 +307,9 @@ void RendererVk::EndFrame() {
     render_pass_.get()->EndRenderPass();
     render_pass_ = nullptr;
   }
+
+  EndQueryTimer();
+
   render_state_ = nullptr;
   vkEndCommandBuffer(render_command_buffer_);
 
@@ -191,6 +335,8 @@ void RendererVk::EndFrame() {
   texture_descriptor_frame_cache_.clear();
   bound_descriptor_set_ = VK_NULL_HANDLE;
   bound_image_view_ = VK_NULL_HANDLE;
+
+  retrieveTime();
 }
 
 void RendererVk::SwapchainRecreated() {
