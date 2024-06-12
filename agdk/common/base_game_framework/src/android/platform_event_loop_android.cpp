@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-#include "platform_event_loop.h"
 #include "debug_manager.h"
-#include "game_controller_manager.h"
-#include "user_input_manager.h"
 #include "game-activity/native_app_glue/android_native_app_glue.h"
+#include "game_controller_manager.h"
+#include "paddleboat/paddleboat.h"
+#include "platform_event_loop.h"
 #include "platform_events_android.h"
 #include "platform_util_android.h"
-
-#include "paddleboat/paddleboat.h"
+#include "user_input_manager.h"
 
 namespace base_game_framework {
 
@@ -67,15 +66,14 @@ void PlatformEventLoop::ShutdownInstance() {
 }
 
 PlatformEventLoop::PlatformEventLoop() {
-  platform_data_ = std::unique_ptr<PlatformEventLoopData>(new PlatformEventLoopData());
+  platform_data_ =
+      std::unique_ptr<PlatformEventLoopData>(new PlatformEventLoopData());
   platform_data_->android_app_ = PlatformUtilAndroid::GetAndroidApp();
   platform_data_->android_app_->onAppCmd = _handle_cmd_proxy;
   platform_data_->android_app_->motionEventFilter = _all_motion_filter;
 }
 
-PlatformEventLoop::~PlatformEventLoop() {
-  platform_data_.reset();
-}
+PlatformEventLoop::~PlatformEventLoop() { platform_data_.reset(); }
 
 void PlatformEventLoop::PollEvents() {
   int events;
@@ -90,25 +88,28 @@ void PlatformEventLoop::PollEvents() {
     game_controller_manager.Update();
   }
 
-  while ((ALooper_pollAll(0, nullptr, &events, (void **) &source)) >= 0) {
+  while ((ALooper_pollOnce(0, nullptr, &events, (void **)&source)) >= 0) {
     if (source != nullptr) {
       source->process(platform_data_->android_app_, source);
     }
   }
   // Process key and motion events pending via GameActivity
-  // Swap input buffers so we don't miss any events while processing inputBuffer.
-  android_input_buffer *input_buffer = android_app_swap_input_buffers(platform_data_->android_app_);
+  // Swap input buffers so we don't miss any events while processing
+  // inputBuffer.
+  android_input_buffer *input_buffer =
+      android_app_swap_input_buffers(platform_data_->android_app_);
   if (input_buffer != nullptr) {
     if (input_buffer->keyEventsCount != 0) {
       for (uint64_t i = 0; i < input_buffer->keyEventsCount; ++i) {
         GameActivityKeyEvent *keyEvent = &input_buffer->keyEvents[i];
         bool controller_ate_key = false;
         if (do_controller) {
-          controller_ate_key = Paddleboat_processGameActivityKeyInputEvent(keyEvent,
-                                                                           sizeof(GameActivityKeyEvent));
+          controller_ate_key = Paddleboat_processGameActivityKeyInputEvent(
+              keyEvent, sizeof(GameActivityKeyEvent));
         }
         if (!controller_ate_key) {
-          PlatformEventAndroid::ProcessKeyEvent(platform_data_->android_app_, *keyEvent);
+          PlatformEventAndroid::ProcessKeyEvent(platform_data_->android_app_,
+                                                *keyEvent);
         }
       }
       android_app_clear_key_events(input_buffer);
@@ -118,11 +119,13 @@ void PlatformEventLoop::PollEvents() {
         GameActivityMotionEvent *motionEvent = &input_buffer->motionEvents[i];
         bool controller_ate_motion = false;
         if (do_controller) {
-          controller_ate_motion = Paddleboat_processGameActivityMotionInputEvent(motionEvent,
-                                                                                 sizeof(GameActivityMotionEvent));
+          controller_ate_motion =
+              Paddleboat_processGameActivityMotionInputEvent(
+                  motionEvent, sizeof(GameActivityMotionEvent));
         }
         if (!controller_ate_motion) {
-          PlatformEventAndroid::ProcessMotionEvent(platform_data_->android_app_, *motionEvent);
+          PlatformEventAndroid::ProcessMotionEvent(platform_data_->android_app_,
+                                                   *motionEvent);
         }
       }
       android_app_clear_motion_events(input_buffer);
@@ -131,11 +134,10 @@ void PlatformEventLoop::PollEvents() {
   }
 
   if (do_controller) {
-    // Update our controller data after reading any new key or motion events that
-    // might have been tied to controllers
+    // Update our controller data after reading any new key or motion events
+    // that might have been tied to controllers
     game_controller_manager.RefreshControllerData();
   }
-
 }
 
-} // namespace base_game_framework
+}  // namespace base_game_framework
