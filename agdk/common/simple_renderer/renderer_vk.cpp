@@ -15,6 +15,14 @@
  */
 
 #include "renderer_vk.h"
+
+#include <inttypes.h>
+
+#include <chrono>
+
+#include "simple_renderer/adpf_gpu.hpp"
+#include "common.hpp"
+#include "display_manager.h"
 #include "renderer_debug.h"
 #include "renderer_index_buffer_vk.h"
 #include "renderer_render_pass_vk.h"
@@ -23,7 +31,7 @@
 #include "renderer_texture_vk.h"
 #include "renderer_uniform_buffer_vk.h"
 #include "renderer_vertex_buffer_vk.h"
-#include "display_manager.h"
+#include "vulkan/graphics_api_vulkan.h"
 
 using namespace base_game_framework;
 
@@ -33,20 +41,22 @@ RendererVk& RendererVk::GetInstanceVk() {
   return *(static_cast<RendererVk*>(Renderer::GetInstancePtr()));
 }
 
-RendererVk::RendererVk() :
-    staging_command_buffer_(VK_NULL_HANDLE),
-    render_command_buffer_(VK_NULL_HANDLE),
-    active_extent_{0, 0},
-    active_frame_pool_(VK_NULL_HANDLE),
-    bound_descriptor_set_(VK_NULL_HANDLE),
-    bound_image_view_(VK_NULL_HANDLE),
-    dirty_descriptor_set_(false),
-    descriptor_pools_(),
-    descriptor_set_layouts_(),
-    descriptor_set_vertex_table_(VertexBuffer::kVertexFormat_Count),
-    texture_descriptor_frame_cache_(kMaxSamplerDescriptors) {
+RendererVk::RendererVk()
+    : staging_command_buffer_(VK_NULL_HANDLE),
+      query_command_buffer_(VK_NULL_HANDLE),
+      render_command_buffer_(VK_NULL_HANDLE),
+      active_extent_{0, 0},
+      active_frame_pool_(VK_NULL_HANDLE),
+      bound_descriptor_set_(VK_NULL_HANDLE),
+      bound_image_view_(VK_NULL_HANDLE),
+      dirty_descriptor_set_(false),
+      descriptor_pools_(),
+      descriptor_set_layouts_(),
+      descriptor_set_vertex_table_(VertexBuffer::kVertexFormat_Count),
+      texture_descriptor_frame_cache_(kMaxSamplerDescriptors) {
   DisplayManager& display_manager = DisplayManager::GetInstance();
-  const GraphicsAPIFeatures& api_features = display_manager.GetGraphicsAPIFeatures();
+  const GraphicsAPIFeatures& api_features =
+      display_manager.GetGraphicsAPIFeatures();
   display_manager.GetGraphicsAPIResourcesVk(vk_);
   // Use a per-vertex-format lookup table to retrieve the descriptor set
   // (at the moment, sampler/no sampler)
@@ -69,16 +79,20 @@ RendererVk::RendererVk() :
   CreateDescriptorPools();
   CreateCommandBuffers();
 
-  // Grab swapchain information, but don't request a frame yet (should only happen in BeginFrame)
+  // Grab swapchain information, but don't request a frame yet (should only
+  // happen in BeginFrame)
   const DisplayManager::SwapchainFrameHandle frame_handle =
       display_manager.GetCurrentSwapchainFrame(Renderer::GetSwapchainHandle());
   if (frame_handle != DisplayManager::kInvalid_swapchain_handle) {
     display_manager.GetSwapchainFrameResourcesVk(frame_handle, swap_, false);
   }
+
+  last_gpu_duration_ = 0;
+
+  SetupQueryTimer();
 }
 
-RendererVk::~RendererVk() {
-}
+RendererVk::~RendererVk() {}
 
 void RendererVk::PrepareShutdown() {
   render_pass_ = nullptr;
@@ -112,8 +126,115 @@ bool RendererVk::GetFeatureAvailable(const RendererFeature feature) {
   return supported;
 }
 
+void RendererVk::retrieveTime() {
+  // vkGetQueryPoolResults(); device, queryPool, queryCount = 2, firstQuery,
+  // pData, dataSize, stride, flags
+  std::array<uint64_t, 2> resultBuffer;
+  vkDeviceWaitIdle(vk_.device);
+  VkResult result = vkGetQueryPoolResults(
+      vk_.device, query_pool_, 0, 2, sizeof(uint64_t) * resultBuffer.size(),
+      resultBuffer.data(), sizeof(uint64_t),
+      VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
+
+  // based on:
+  // https://github.com/nxp-imx/gtec-demo-framework/blob/master/DemoApps/Vulkan/GpuTimestamp/source/GpuTimestamp.cpp
+  const auto duration = resultBuffer[1] - resultBuffer[0];
+
+  // CPU_PERF_HINT
+  auto cpu_clock_end = std::chrono::high_resolution_clock::now();
+  auto cpu_clock_past = cpu_clock_end - cpu_clock_start_;
+  auto cpu_clock_duration =
+      std::chrono::duration_cast<std::chrono::nanoseconds>(cpu_clock_past)
+          .count();
+  int64_t duration_ns = static_cast<int64_t>(cpu_clock_duration);
+  AdpfGpu::getInstance().setActualCpuDurationNanos(duration_ns);
+  AdpfGpu::getInstance().setActualTotalDurationNanos(duration_ns);
+
+  int64_t gpu_work_duration =
+      result == VK_SUCCESS ? (int64_t)duration : last_gpu_duration_;
+  AdpfGpu::getInstance().setActualGpuDurationNanos(gpu_work_duration, true);
+  AdpfGpu::getInstance().reportActualWorkDuration();
+  last_gpu_duration_ = gpu_work_duration;
+
+  DisplayManager& display_manager = DisplayManager::GetInstance();
+  int64_t swapchainInterval = display_manager.GetSwapchainInterval();
+  AdpfGpu::getInstance().updateTargetWorkDuration(swapchainInterval);
+}
+
+void RendererVk::SetupQueryTimer() {
+  // To pay attention:
+  // VkPhysicalDeviceLimits::timestampComputeAndGraphics // must support
+  // VkPhysicalDeviceLimits::timestampPeriod => timestampPeriod is the number of
+  // nanoseconds required for a timestamp query to be incremented by 1.
+
+  // vkCreateQueryPool(); VkQueryPoolCreateInfo::queryType =
+  // VK_QUERY_TYPE_TIMESTAMP
+  VkQueryPoolCreateInfo createInfo{};
+  createInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
+  createInfo.pNext = nullptr;  // Optional
+  createInfo.flags = 0;        // Reserved for future use, must be 0!
+
+  createInfo.queryType = VK_QUERY_TYPE_TIMESTAMP;
+  createInfo.queryCount = 2;  // REVIEW
+  // createInfo.queryCount = mCommandBuffers.size() * 2; // REVIEW
+
+  VkResult result =
+      vkCreateQueryPool(vk_.device, &createInfo, nullptr, &query_pool_);
+  if (result == VK_SUCCESS) {
+    ALOGI(
+        "RendererVk::SetupQueryTimer vkCreateQueryPool result SUCCESS: %d "
+        "query_command_buffer_ %p",
+        result, &query_command_buffer_);
+  } else {
+    ALOGI(
+        "RendererVk::SetupQueryTimer vkCreateQueryPool result FAILED: %d "
+        "query_command_buffer_ %p",
+        result, &query_command_buffer_);
+  }
+}
+
+void RendererVk::StartQueryTimer() {
+  if (render_command_buffer_ == VK_NULL_HANDLE) {
+    ALOGE("RendererVk::StartQueryTimer render_command_buffer is NULL");
+    return;
+  }
+  if (query_pool_ == VK_NULL_HANDLE) {
+    ALOGE("RendererVk::StartQueryTimer query_pool is NULL");
+    return;
+  }
+
+  // CPU_PERF_HINT
+  cpu_clock_start_ = std::chrono::high_resolution_clock::now();
+  auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                   cpu_clock_start_.time_since_epoch())
+                   .count();
+  AdpfGpu::getInstance().setWorkPeriodStartTimestampNanos(nanos);
+
+  // Queries must be reset after each individual use
+  // vkResetQueryPool(vk_.device, query_pool_, 0, 2);
+  vkCmdResetQueryPool(render_command_buffer_, query_pool_, 0, 2);
+
+  vkCmdWriteTimestamp(render_command_buffer_, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                      query_pool_, 0);
+}
+
+void RendererVk::EndQueryTimer() {
+  if (render_command_buffer_ == VK_NULL_HANDLE) {
+    ALOGE("RendererVk::EndQueryTimer render_command_buffer is NULL");
+    return;
+  }
+  if (query_pool_ == VK_NULL_HANDLE) {
+    ALOGE("RendererVk::EndQueryTimer query_pool is NULL");
+    return;
+  }
+
+  vkCmdWriteTimestamp(render_command_buffer_,
+                      VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, query_pool_, 1);
+}
+
 void RendererVk::BeginFrame(
-    const base_game_framework::DisplayManager::SwapchainHandle swapchain_handle) {
+    const base_game_framework::DisplayManager::SwapchainHandle
+        swapchain_handle) {
   resources_.ProcessDeleteQueue();
   // At the moment, we don't support render targets, so grab a swapchain image
   // as soon as we start a frame
@@ -126,21 +247,25 @@ void RendererVk::BeginFrame(
 
     RENDERER_ASSERT(swap_.swapchain_frame_index < descriptor_pools_.size())
     active_frame_pool_ = descriptor_pools_[swap_.swapchain_frame_index];
-    VkResult reset_result = vkResetDescriptorPool(vk_.device, active_frame_pool_, 0);
+    VkResult reset_result =
+        vkResetDescriptorPool(vk_.device, active_frame_pool_, 0);
     RENDERER_CHECK_VK(reset_result, "vkResetDescriptorPool");
   }
 
   render_command_buffer_ = command_buffers_[swap_.swapchain_frame_index];
 
-  const VkResult reset_command_result = vkResetCommandBuffer(render_command_buffer_, 0);
+  const VkResult reset_command_result =
+      vkResetCommandBuffer(render_command_buffer_, 0);
   RENDERER_CHECK_VK(reset_command_result, "vkResetCommandBuffer");
 
   VkCommandBufferBeginInfo command_buffer_begin_info = {};
   command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
   command_buffer_begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-  const VkResult begin_command_result = vkBeginCommandBuffer(render_command_buffer_,
-                                                             &command_buffer_begin_info);
+  const VkResult begin_command_result =
+      vkBeginCommandBuffer(render_command_buffer_, &command_buffer_begin_info);
   RENDERER_CHECK_VK(begin_command_result, "vkBeginCommandBuffer");
+
+  StartQueryTimer();
 
   // We enabled dynamic viewport and width in the pipeline object,
   // so set them at the beginning of our render command buffer
@@ -166,6 +291,9 @@ void RendererVk::EndFrame() {
     render_pass_.get()->EndRenderPass();
     render_pass_ = nullptr;
   }
+
+  EndQueryTimer();
+
   render_state_ = nullptr;
   vkEndCommandBuffer(render_command_buffer_);
 
@@ -184,30 +312,35 @@ void RendererVk::EndFrame() {
   submit_info.signalSemaphoreCount = 1;
   submit_info.pSignalSemaphores = signal_semaphores;
 
-  const VkResult queue_result = vkQueueSubmit(vk_.render_queue, 1, &submit_info, swap_.frame_fence);
+  const VkResult queue_result =
+      vkQueueSubmit(vk_.render_queue, 1, &submit_info, swap_.frame_fence);
   RENDERER_CHECK_VK(queue_result, "vkQueueSubmit");
 
   active_frame_pool_ = VK_NULL_HANDLE;
   texture_descriptor_frame_cache_.clear();
   bound_descriptor_set_ = VK_NULL_HANDLE;
   bound_image_view_ = VK_NULL_HANDLE;
+
+  retrieveTime();
 }
 
 void RendererVk::SwapchainRecreated() {
   // Our cached framebuffers were associated with image view from the old
   // swapchain, purge the cache to rebuild them using the new swapchain
-  for (auto &render_pass : resources_.GetRenderPasses()) {
-    RenderPassVk *render_pass_vk = reinterpret_cast<RenderPassVk*>(render_pass.second.get());
+  for (auto& render_pass : resources_.GetRenderPasses()) {
+    RenderPassVk* render_pass_vk =
+        reinterpret_cast<RenderPassVk*>(render_pass.second.get());
     render_pass_vk->PurgeFramebufferCache();
   }
 }
 
-void RendererVk::Draw(const uint32_t vertex_count, const uint32_t first_vertex) {
+void RendererVk::Draw(const uint32_t vertex_count,
+                      const uint32_t first_vertex) {
   RenderStateVk& state = *(static_cast<RenderStateVk*>(render_state_.get()));
   if (dirty_descriptor_set_) {
-    vkCmdBindDescriptorSets(render_command_buffer_, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            state.GetPipelineLayout(), 0, 1, &bound_descriptor_set_,
-                            0, nullptr);
+    vkCmdBindDescriptorSets(
+        render_command_buffer_, VK_PIPELINE_BIND_POINT_GRAPHICS,
+        state.GetPipelineLayout(), 0, 1, &bound_descriptor_set_, 0, nullptr);
     dirty_descriptor_set_ = false;
   }
 
@@ -217,12 +350,13 @@ void RendererVk::Draw(const uint32_t vertex_count, const uint32_t first_vertex) 
   vkCmdDraw(render_command_buffer_, vertex_count, 1, first_vertex, 0);
 }
 
-void RendererVk::DrawIndexed(const uint32_t index_count, const uint32_t first_index) {
+void RendererVk::DrawIndexed(const uint32_t index_count,
+                             const uint32_t first_index) {
   RenderStateVk& state = *(static_cast<RenderStateVk*>(render_state_.get()));
   if (dirty_descriptor_set_) {
-    vkCmdBindDescriptorSets(render_command_buffer_, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            state.GetPipelineLayout(), 0, 1, &bound_descriptor_set_,
-                            0, nullptr);
+    vkCmdBindDescriptorSets(
+        render_command_buffer_, VK_PIPELINE_BIND_POINT_GRAPHICS,
+        state.GetPipelineLayout(), 0, 1, &bound_descriptor_set_, 0, nullptr);
     dirty_descriptor_set_ = false;
   }
 
@@ -249,23 +383,27 @@ void RendererVk::SetRenderState(std::shared_ptr<RenderState> render_state) {
   if (render_state.get() != render_state_.get()) {
     render_state_ = render_state;
     RenderStateVk& state = *(static_cast<RenderStateVk*>(render_state_.get()));
-    vkCmdBindPipeline(render_command_buffer_, VK_PIPELINE_BIND_POINT_GRAPHICS, state.GetPipeline());
+    vkCmdBindPipeline(render_command_buffer_, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      state.GetPipeline());
     bound_descriptor_set_ = VK_NULL_HANDLE;
     bound_image_view_ = VK_NULL_HANDLE;
   }
 }
 
 void RendererVk::BindIndexBuffer(std::shared_ptr<IndexBuffer> index_buffer) {
-  IndexBufferVk& index_buffer_vk = *(static_cast<IndexBufferVk*>(index_buffer.get()));
+  IndexBufferVk& index_buffer_vk =
+      *(static_cast<IndexBufferVk*>(index_buffer.get()));
   vkCmdBindIndexBuffer(render_command_buffer_, index_buffer_vk.GetIndexBuffer(),
                        0, VK_INDEX_TYPE_UINT16);
 }
 
 void RendererVk::BindVertexBuffer(std::shared_ptr<VertexBuffer> vertex_buffer) {
-  VertexBufferVk& vertex_buffer_vk = *(static_cast<VertexBufferVk*>(vertex_buffer.get()));
+  VertexBufferVk& vertex_buffer_vk =
+      *(static_cast<VertexBufferVk*>(vertex_buffer.get()));
   VkBuffer vertex_buffers[] = {vertex_buffer_vk.GetVertexBuffer()};
   VkDeviceSize vertex_offsets[] = {0};
-  vkCmdBindVertexBuffers(render_command_buffer_, 0, 1, vertex_buffers, vertex_offsets);
+  vkCmdBindVertexBuffers(render_command_buffer_, 0, 1, vertex_buffers,
+                         vertex_offsets);
 }
 
 void RendererVk::BindTexture(std::shared_ptr<Texture> texture) {
@@ -281,7 +419,8 @@ void RendererVk::BindTexture(std::shared_ptr<Texture> texture) {
     return;
   }
   bound_image_view_ = texture_image_view;
-  for (const TextureDescriptorFrameCache& cache : texture_descriptor_frame_cache_) {
+  for (const TextureDescriptorFrameCache& cache :
+       texture_descriptor_frame_cache_) {
     if (cache.texture_image_view == texture_image_view) {
       bound_descriptor_set_ = cache.descriptor_set;
       dirty_descriptor_set_ = true;
@@ -293,14 +432,15 @@ void RendererVk::BindTexture(std::shared_ptr<Texture> texture) {
   // write the descriptor data
   RenderStateVk& state = *(static_cast<RenderStateVk*>(render_state_.get()));
 
-  VkDescriptorSetLayout descriptor_set_layouts[] = {state.GetDescriptorSetLayout() };
+  VkDescriptorSetLayout descriptor_set_layouts[] = {
+      state.GetDescriptorSetLayout()};
   VkDescriptorSetAllocateInfo descriptor_set_info = {};
   descriptor_set_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
   descriptor_set_info.descriptorPool = active_frame_pool_;
   descriptor_set_info.descriptorSetCount = 1;
   descriptor_set_info.pSetLayouts = descriptor_set_layouts;
-  const VkResult allocate_result = vkAllocateDescriptorSets(vk_.device, &descriptor_set_info,
-                                                            &bound_descriptor_set_);
+  const VkResult allocate_result = vkAllocateDescriptorSets(
+      vk_.device, &descriptor_set_info, &bound_descriptor_set_);
   RENDERER_CHECK_VK(allocate_result, "vkAllocateDescriptorSets");
 
   VkDescriptorImageInfo descriptor_image_info = {};
@@ -313,7 +453,8 @@ void RendererVk::BindTexture(std::shared_ptr<Texture> texture) {
   write_descriptor_set.dstSet = bound_descriptor_set_;
   write_descriptor_set.dstBinding = 1;
   write_descriptor_set.dstArrayElement = 0;
-  write_descriptor_set.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  write_descriptor_set.descriptorType =
+      VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
   write_descriptor_set.descriptorCount = 1;
   write_descriptor_set.pImageInfo = &descriptor_image_info;
 
@@ -356,11 +497,13 @@ std::shared_ptr<ShaderProgram> RendererVk::CreateShaderProgram(
   return resources_.AddShaderProgram(new ShaderProgramVk(params));
 }
 
-void RendererVk::DestroyShaderProgram(std::shared_ptr<ShaderProgram> shader_program) {
+void RendererVk::DestroyShaderProgram(
+    std::shared_ptr<ShaderProgram> shader_program) {
   resources_.QueueDeleteShaderProgram(shader_program);
 }
 
-std::shared_ptr<Texture> RendererVk::CreateTexture(const Texture::TextureCreationParams& params) {
+std::shared_ptr<Texture> RendererVk::CreateTexture(
+    const Texture::TextureCreationParams& params) {
   return resources_.AddTexture(new TextureVk(params));
 }
 
@@ -373,7 +516,8 @@ std::shared_ptr<UniformBuffer> RendererVk::CreateUniformBuffer(
   return resources_.AddUniformBuffer(new UniformBufferVk(params));
 }
 
-void RendererVk::DestroyUniformBuffer(std::shared_ptr<UniformBuffer> uniform_buffer) {
+void RendererVk::DestroyUniformBuffer(
+    std::shared_ptr<UniformBuffer> uniform_buffer) {
   resources_.QueueDeleteUniformBuffer(uniform_buffer);
 }
 
@@ -382,7 +526,8 @@ std::shared_ptr<VertexBuffer> RendererVk::CreateVertexBuffer(
   return resources_.AddVertexBuffer(new VertexBufferVk(params));
 }
 
-void RendererVk::DestroyVertexBuffer(std::shared_ptr<VertexBuffer> vertex_buffer) {
+void RendererVk::DestroyVertexBuffer(
+    std::shared_ptr<VertexBuffer> vertex_buffer) {
   resources_.QueueDeleteVertexBuffer(vertex_buffer);
 }
 
@@ -397,19 +542,20 @@ VkDescriptorSetLayout RendererVk::GetDescriptorSetLayout(
     bool has_texture = false;
 
     VkDescriptorSetLayoutBinding sampler_layout_binding = {};
-    VkDescriptorSetLayoutCreateInfo
-        descriptor_set_layout_info = {};
-    descriptor_set_layout_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    VkDescriptorSetLayoutCreateInfo descriptor_set_layout_info = {};
+    descriptor_set_layout_info.sType =
+        VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 
     if (vertex_format == VertexBuffer::kVertexFormat_P3T2 ||
         vertex_format == VertexBuffer::kVertexFormat_P3T2C4) {
-      // If we have a texture vertex format, assume we need to hook up a sampler,
-      // and we need a descriptor set and descriptor to specify it.
-      // Since we are using push constants, we don't need to configure a uniform or
-      // storage buffer descriptor.
+      // If we have a texture vertex format, assume we need to hook up a
+      // sampler, and we need a descriptor set and descriptor to specify it.
+      // Since we are using push constants, we don't need to configure a uniform
+      // or storage buffer descriptor.
 
       sampler_layout_binding.binding = 1;
-      sampler_layout_binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+      sampler_layout_binding.descriptorType =
+          VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
       sampler_layout_binding.descriptorCount = 1;
       sampler_layout_binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
@@ -417,19 +563,23 @@ VkDescriptorSetLayout RendererVk::GetDescriptorSetLayout(
       descriptor_set_layout_info.pBindings = &sampler_layout_binding;
       has_texture = true;
     }
-    const VkResult layout_result = vkCreateDescriptorSetLayout(vk_.device,
-                                                               &descriptor_set_layout_info,
-                                                               nullptr, &descriptor_set_layout);
+    const VkResult layout_result =
+        vkCreateDescriptorSetLayout(vk_.device, &descriptor_set_layout_info,
+                                    nullptr, &descriptor_set_layout);
     RENDERER_CHECK_VK(layout_result, "vkCreateDescriptorSetLayout");
 
-    // We technically only need two layouts, one for a texture (sampler) and one without
-    // so duplicate across the matching formats
+    // We technically only need two layouts, one for a texture (sampler) and one
+    // without so duplicate across the matching formats
     if (has_texture) {
-      descriptor_set_vertex_table_[VertexBuffer::kVertexFormat_P3T2] = descriptor_set_layout;
-      descriptor_set_vertex_table_[VertexBuffer::kVertexFormat_P3T2C4] = descriptor_set_layout;
+      descriptor_set_vertex_table_[VertexBuffer::kVertexFormat_P3T2] =
+          descriptor_set_layout;
+      descriptor_set_vertex_table_[VertexBuffer::kVertexFormat_P3T2C4] =
+          descriptor_set_layout;
     } else {
-      descriptor_set_vertex_table_[VertexBuffer::kVertexFormat_P3] = descriptor_set_layout;
-      descriptor_set_vertex_table_[VertexBuffer::kVertexFormat_P3C4] = descriptor_set_layout;
+      descriptor_set_vertex_table_[VertexBuffer::kVertexFormat_P3] =
+          descriptor_set_layout;
+      descriptor_set_vertex_table_[VertexBuffer::kVertexFormat_P3C4] =
+          descriptor_set_layout;
     }
     // Keep track of uniques for disposal at shutdown
     if (descriptor_set_layout != VK_NULL_HANDLE) {
@@ -443,13 +593,13 @@ VkCommandBuffer RendererVk::BeginStagingCommandBuffer() {
   RENDERER_ASSERT(staging_command_buffer_ != nullptr)
 
   VkCommandBufferBeginInfo begin_info = {
-      VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-      nullptr,
-      VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
-      nullptr};
+      VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, nullptr,
+      VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT, nullptr};
   vkResetCommandBuffer(staging_command_buffer_, 0);
-  const VkResult begin_result = vkBeginCommandBuffer(staging_command_buffer_, &begin_info);
-  RENDERER_CHECK_VK(begin_result, "vkBeginCommandBuffer (BeginStagingCommandBuffer)");
+  const VkResult begin_result =
+      vkBeginCommandBuffer(staging_command_buffer_, &begin_info);
+  RENDERER_CHECK_VK(begin_result,
+                    "vkBeginCommandBuffer (BeginStagingCommandBuffer)");
   return staging_command_buffer_;
 }
 
@@ -458,10 +608,11 @@ void RendererVk::EndStagingCommandBuffer() {
   const VkResult end_result = vkEndCommandBuffer(staging_command_buffer_);
   RENDERER_CHECK_VK(end_result, "vkEndCommandBuffer (EndStagingCommandBuffer");
 
-  VkSubmitInfo submit_info = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
+  VkSubmitInfo submit_info = {VK_STRUCTURE_TYPE_SUBMIT_INFO};
   submit_info.commandBufferCount = 1;
   submit_info.pCommandBuffers = &staging_command_buffer_;
-  const VkResult submit_result = vkQueueSubmit(vk_.render_queue, 1, &submit_info, VK_NULL_HANDLE);
+  const VkResult submit_result =
+      vkQueueSubmit(vk_.render_queue, 1, &submit_info, VK_NULL_HANDLE);
   RENDERER_CHECK_VK(submit_result, "vkQueueSubmit (EndStagingCommandBuffer)");
 
   const VkResult wait_result = vkQueueWaitIdle(vk_.render_queue);
@@ -475,7 +626,8 @@ void RendererVk::CreateCommandBuffers() {
   command_pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
   command_pool_info.queueFamilyIndex = vk_.graphics_queue_index;
   command_pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-  VkResult result = vkCreateCommandPool(vk_.device, &command_pool_info, nullptr, &command_pool_);
+  VkResult result = vkCreateCommandPool(vk_.device, &command_pool_info, nullptr,
+                                        &command_pool_);
   RENDERER_CHECK_VK(result, "vkCreateCommandPool");
 
   VkCommandBufferAllocateInfo command_buffer_info = {};
@@ -483,16 +635,19 @@ void RendererVk::CreateCommandBuffers() {
   command_buffer_info.commandPool = command_pool_;
   command_buffer_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
   command_buffer_info.commandBufferCount = in_flight_frame_count_;
-  result = vkAllocateCommandBuffers(vk_.device, &command_buffer_info, command_buffers_.data());
+  result = vkAllocateCommandBuffers(vk_.device, &command_buffer_info,
+                                    command_buffers_.data());
   RENDERER_CHECK_VK(result, "vkAllocateCommandBuffers");
 
   command_buffer_info.commandBufferCount = 1;
-  result = vkAllocateCommandBuffers(vk_.device, &command_buffer_info, &staging_command_buffer_);
+  result = vkAllocateCommandBuffers(vk_.device, &command_buffer_info,
+                                    &staging_command_buffer_);
   RENDERER_CHECK_VK(result, "vkAllocateCommandBuffers");
 }
 
 void RendererVk::DestroyCommandBuffers() {
-  vkFreeCommandBuffers(vk_.device, command_pool_, command_buffers_.size(), command_buffers_.data());
+  vkFreeCommandBuffers(vk_.device, command_pool_, command_buffers_.size(),
+                       command_buffers_.data());
   command_buffers_.clear();
   vkFreeCommandBuffers(vk_.device, command_pool_, 1, &staging_command_buffer_);
   staging_command_buffer_ = VK_NULL_HANDLE;
@@ -515,8 +670,8 @@ void RendererVk::CreateDescriptorPools() {
 
   for (uint32_t i = 0; i < in_flight_frame_count_; ++i) {
     VkDescriptorPool pool;
-    const VkResult pool_result = vkCreateDescriptorPool(vk_.device, &pool_create_info,
-                                                        nullptr, &pool);
+    const VkResult pool_result =
+        vkCreateDescriptorPool(vk_.device, &pool_create_info, nullptr, &pool);
     RENDERER_CHECK_VK(pool_result, "vkCreateDescriptorPool");
     if (pool_result == VK_SUCCESS) {
       descriptor_pools_[i] = pool;
@@ -524,4 +679,4 @@ void RendererVk::CreateDescriptorPools() {
   }
 }
 
-}
+}  // namespace simple_renderer

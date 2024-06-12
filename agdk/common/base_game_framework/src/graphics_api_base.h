@@ -21,6 +21,7 @@
 #include <functional>
 #include <memory>
 #include <vector>
+
 #include "display_manager.h"
 #include "graphics_api_features.h"
 #include "graphics_api_status.h"
@@ -30,7 +31,12 @@ namespace base_game_framework {
 class GraphicsAPIBase {
  public:
   virtual DisplayManager::GraphicsAPI GetAPI() const = 0;
-  virtual GraphicsAPIStatus GetAPIStatus() const { return kGraphicsAPI_Uninitialized; }
+  virtual GraphicsAPIStatus GetAPIStatus() const {
+    return kGraphicsAPI_Uninitialized;
+  }
+  virtual DisplayManager::DisplaySwapInterval GetSwapchainInterval() const {
+    return swapchain_interval_;
+  }
   virtual const GraphicsAPIFeatures& GetAPIFeatures() const = 0;
 
   virtual void QueryAvailability() = 0;
@@ -40,15 +46,17 @@ class GraphicsAPIBase {
   virtual bool InitializeGraphicsAPI() = 0;
   virtual void ShutdownGraphicsAPI() = 0;
 
-  virtual bool SetDisplayChangedCallback(DisplayManager::DisplayChangedCallback callback,
-                                         void *user_data) = 0;
+  virtual bool SetDisplayChangedCallback(
+      DisplayManager::DisplayChangedCallback callback, void* user_data) = 0;
 
-  virtual bool SetSwapchainChangedCallback(DisplayManager::SwapchainChangedCallback callback,
-                                                void* user_data) = 0;
+  virtual bool SetSwapchainChangedCallback(
+      DisplayManager::SwapchainChangedCallback callback, void* user_data) = 0;
 
-  virtual void SwapchainChanged(const DisplayManager::SwapchainChangeMessage message) = 0;
+  virtual void SwapchainChanged(
+      const DisplayManager::SwapchainChangeMessage message) = 0;
 
-  virtual DisplayManager::SwapchainConfigurations *GenerateSwapchainConfigurations() = 0;
+  virtual DisplayManager::SwapchainConfigurations*
+  GenerateSwapchainConfigurations() = 0;
   virtual DisplayManager::InitSwapchainResult InitSwapchain(
       const DisplayManager::DisplayFormat& display_format,
       const DisplayManager::DisplayResolution& display_resolution,
@@ -58,12 +66,15 @@ class GraphicsAPIBase {
   virtual void ShutdownSwapchain() = 0;
   virtual bool GetSwapchainValid() = 0;
   virtual DisplayManager::SwapchainFrameHandle GetCurrentSwapchainFrame() = 0;
-  virtual DisplayManager::SwapchainFrameHandle PresentCurrentSwapchainFrame() = 0;
+  virtual DisplayManager::SwapchainFrameHandle
+  PresentCurrentSwapchainFrame() = 0;
 
  protected:
   GraphicsAPIBase() {}
+
+  DisplayManager::DisplaySwapInterval swapchain_interval_;
 };
 
-} // base_game_framework
+}  // namespace base_game_framework
 
-#endif // BASEGAMEFRAMEWORK_GRAPHICSAPI_H_
+#endif  // BASEGAMEFRAMEWORK_GRAPHICSAPI_H_

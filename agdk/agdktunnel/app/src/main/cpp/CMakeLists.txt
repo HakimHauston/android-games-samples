@@ -106,6 +106,7 @@ set(BGF_SRCS
 
 # TODO: migrate to imported cmake file for commonality with other samples
 set(SIMPLE_RENDERER_SRCS
+     ${SIMPLE_RENDERER_DIR}/adpf_gpu.cpp
      ${SIMPLE_RENDERER_DIR}/renderer_debug_gles.cpp
      ${SIMPLE_RENDERER_DIR}/renderer_debug_vk.cpp
      ${SIMPLE_RENDERER_DIR}/renderer_index_buffer_gles.cpp
