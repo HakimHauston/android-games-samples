@@ -33,8 +33,8 @@ extern "C" {
 
 namespace {
 
-    const char *controllerTabNames[PADDLEBOAT_MAX_CONTROLLERS] = {" #1 ", " #2 ", " #3 ", " #4 ",
-                                                                  " #5 ", " #6 ", " #7 ", " #8 "};
+//    const char *controllerTabNames[PADDLEBOAT_MAX_CONTROLLERS] = {" #1 ", " #2 ", " #3 ", " #4 ",
+//                                                                  " #5 ", " #6 ", " #7 ", " #8 "};
     const char *integratedTabName = " #I ";
     typedef void(DemoScene::*ControllerCategoryRenderFunction)(const int32_t,
             const Paddleboat_Controller_Data&, const Paddleboat_Controller_Info&);
@@ -361,33 +361,33 @@ bool DemoScene::RenderPreferences() {
 
 void DemoScene::RenderControllerTabs() {
     if (ImGui::BeginTabBar("ControllerTabBar", ImGuiTabBarFlags_NoTooltip)) {
-        for (size_t index = 0; index < PADDLEBOAT_MAX_CONTROLLERS; ++index) {
-            ImGuiTabItemFlags tabItemFlags = ImGuiTabItemFlags_None;
-            if (mMostRecentConnectedControllerIndex >= 0) {
-                // Switch active tab to newly connected controller
-                if (index == static_cast<size_t>(mMostRecentConnectedControllerIndex)) {
-                    tabItemFlags |= ImGuiTabItemFlags_SetSelected;
-                    mMostRecentConnectedControllerIndex = -1;
-                }
-            }
-            const ImVec4 tabTextColor =
-                mActiveControllers[index] ? TEXTCOLOR_WHITE : TEXTCOLOR_GREY;
+        // for (size_t index = 0; index < PADDLEBOAT_MAX_CONTROLLERS; ++index) {
+        //     ImGuiTabItemFlags tabItemFlags = ImGuiTabItemFlags_None;
+        //     if (mMostRecentConnectedControllerIndex >= 0) {
+        //         // Switch active tab to newly connected controller
+        //         if (index == static_cast<size_t>(mMostRecentConnectedControllerIndex)) {
+        //             tabItemFlags |= ImGuiTabItemFlags_SetSelected;
+        //             mMostRecentConnectedControllerIndex = -1;
+        //         }
+        //     }
+        //     const ImVec4 tabTextColor =
+        //         mActiveControllers[index] ? TEXTCOLOR_WHITE : TEXTCOLOR_GREY;
 
-            ImGui::PushStyleColor(ImGuiCol_Text, tabTextColor);
-            if (ImGui::BeginTabItem(controllerTabNames[index], NULL, tabItemFlags)) {
-                mCurrentControllerIndex = index;
-                ImGui::PopStyleColor(1);
-                if (mActiveControllers[index] && mCurrentControllerIndex >= 0 &&
-                    mCurrentControllerIndex < PADDLEBOAT_MAX_CONTROLLERS) {
-                    RenderPanel(mCurrentControllerIndex);
-                } else {
-                    ImGui::Text("Not connected");
-                }
-                ImGui::EndTabItem();
-            } else {
-                ImGui::PopStyleColor(1);
-            }
-        }
+        //     ImGui::PushStyleColor(ImGuiCol_Text, tabTextColor);
+        //     if (ImGui::BeginTabItem(controllerTabNames[index], NULL, tabItemFlags)) {
+        //         mCurrentControllerIndex = index;
+        //         ImGui::PopStyleColor(1);
+        //         if (mActiveControllers[index] && mCurrentControllerIndex >= 0 &&
+        //             mCurrentControllerIndex < PADDLEBOAT_MAX_CONTROLLERS) {
+        //             RenderPanel(mCurrentControllerIndex);
+        //         } else {
+        //             ImGui::Text("Not connected");
+        //         }
+        //         ImGui::EndTabItem();
+        //     } else {
+        //         ImGui::PopStyleColor(1);
+        //     }
+        // }
 
         // Add an integrated device stats tab item
         RenderIntegratedTab();
