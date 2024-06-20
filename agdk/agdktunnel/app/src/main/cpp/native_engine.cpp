@@ -179,7 +179,6 @@ bool NativeEngine::CreateSwapchain() {
 
     if (found_display_format) {
         mDisplayFormat = display_format;
-        ALOGI("updateSwapchainInterval Default First Choice %" PRId64 "", swapchain_configurations->display_swap_intervals[0]); // FORCE_FPS: DYNAMIC SWAPCHAIN INTERVAL
         const DisplayManager::InitSwapchainResult swapchain_result = display_manager.InitSwapchain(
             display_format, swapchain_configurations->display_resolutions[0],
             swapchain_configurations->display_swap_intervals[0],
@@ -291,8 +290,6 @@ void NativeEngine::DoFrame() {
     }
 
     simple_renderer::Renderer& renderer = simple_renderer::Renderer::GetInstance();
-    // + GPU_HINT_API
-    // renderer.StartQueryTimer();
     renderer.BeginFrame(mSwapchainHandle);
 
     SceneManager *mgr = SceneManager::GetInstance();
@@ -307,8 +304,6 @@ void NativeEngine::DoFrame() {
     mgr->DoFrame();
 
     renderer.EndFrame();
-    // + GPU_HINT_API
-    // renderer.EndQueryTimer();
 
     // swap buffers
     DisplayManager& display_manager = DisplayManager::GetInstance();

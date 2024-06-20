@@ -65,7 +65,6 @@ GraphicsAPIVulkan::GraphicsAPIVulkan()
       present_queue_index_(0),
       swapchain_format_(),
       swapchain_resolution_(0, 0, 0, DisplayManager::kDisplay_Orientation_Landscape),
-      // swapchain_interval_(DisplayManager::kDisplay_Swap_Interval_60FPS),
       swapchain_min_frames_(0),
       swapchain_max_frames_(0),
       swapchain_present_modes_(0),
@@ -233,7 +232,6 @@ void GraphicsAPIVulkan::QueryDeviceCapabilities(VkPhysicalDevice physical_device
 
   // + GPU_PERF_HINT
   AdpfGpu::getInstance().setGpuTimestampPeriod(device_properties.properties.limits.timestampPeriod);
-  ALOGI("GraphicsAPIVulkan::QueryDeviceCapabilities timestampPeriod: %f", device_properties.properties.limits.timestampPeriod); // 40.690105
   // - GPU_PERF_HINT
 
   if (has_driver_properties) {
@@ -524,7 +522,6 @@ DisplayManager::InitSwapchainResult GraphicsAPIVulkan::InitSwapchain(
       break;
     }
   }
-  ALOGI("InitSwapchain VK display_swap_interval: %" PRIu64 " SWAPPY_SWAP_60FPS %ld SWAPPY_SWAP_30FPS %ld", display_swap_interval, SWAPPY_SWAP_60FPS, SWAPPY_SWAP_30FPS);
   if (!found_interval) {
     DebugManager::Log(DebugManager::kLog_Channel_Default,
                       DebugManager::kLog_Level_Error,
