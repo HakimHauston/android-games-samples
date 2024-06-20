@@ -19,13 +19,8 @@
 #include "graphics_api_vulkan_utils.h"
 #include "platform_util_vulkan.h"
 #include <vector>
-#include "swappy/swappy_common.h"
-
-//#include <vulkan/vulkan.hpp>
-#include "common.hpp"
 
 #include "adpf_gpu.hpp"
-
 namespace base_game_framework {
 
 static constexpr DisplayManager::SwapchainFrameHandle kDefault_swapchain_handle = 1;
@@ -559,8 +554,6 @@ DisplayManager::InitSwapchainResult GraphicsAPIVulkan::InitSwapchain(
       vk_physical_device_, vk_surface_);
   swapchain_format_ = display_format;
   swapchain_resolution_ = display_resolution;
-  ALOGI("updateSwapchainInterval VK DISABLED %" PRId64 " -> %" PRId64 "", swapchain_interval_, display_swap_interval);
-  //swapchain_interval_ = display_swap_interval; // FORCE_FPS: disable dynamic fps
   swapchain_info_.swapchain_present_mode_ = kPresentModes[present_mode];
   swapchain_info_.swapchain_image_count_ = swapchain_frame_count;
 

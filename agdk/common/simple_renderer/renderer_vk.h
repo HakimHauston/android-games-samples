@@ -168,7 +168,6 @@ class RendererVk : public Renderer {
   // GPU_PERF_HINT
   std::chrono::time_point<std::chrono::high_resolution_clock> cpu_clock_start_;
   VkQueryPool query_pool_;
-  //VkBuffer query_buffer_;
 
   // Active frame resources
   VkCommandBuffer render_command_buffer_;

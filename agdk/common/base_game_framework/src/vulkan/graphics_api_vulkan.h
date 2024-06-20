@@ -163,7 +163,6 @@ class GraphicsAPIVulkan : public GraphicsAPIBase {
   uint32_t present_queue_index_;
   DisplayManager::DisplayFormat swapchain_format_;
   DisplayManager::DisplayResolution swapchain_resolution_;
-  //DisplayManager::DisplaySwapInterval swapchain_interval_;
   uint32_t swapchain_min_frames_;
   uint32_t swapchain_max_frames_;
   uint32_t swapchain_present_modes_;

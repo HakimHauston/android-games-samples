@@ -32,9 +32,6 @@
 #include <inttypes.h>
 #include <chrono>
 
-// #include <vulkan/vulkan.hpp>
-// #include "../base_game_framework/src/vulkan/platform_util_vulkan.h"
-
 #include "common.hpp"
 
 using namespace base_game_framework;
@@ -136,13 +133,7 @@ void RendererVk::retrieveTime()
 
   // based on:
   // https://github.com/nxp-imx/gtec-demo-framework/blob/master/DemoApps/Vulkan/GpuTimestamp/source/GpuTimestamp.cpp
-  // const double timestampPeriod = 48;
   const auto duration = resultBuffer[1] - resultBuffer[0];
-  // const auto time = static_cast<uint64_t>(std::round((static_cast<double>(resultBuffer[1] - resultBuffer[0]) * timestampPeriod) / 1000.0));
-  // ALOGI("RendererVk::retrieveTime: %" PRIu64 "", time);
-  // RendererVk::retrieveTime: 8536315847637 - 8536315870684 = 1106
-  // ALOGI("RendererVk::retrieveTime: %" PRIu64 " - %" PRIu64 " = %" PRIu64, resultBuffer[0], resultBuffer[1], time);
-  ALOGI("RendererVk::retrieveTime: %" PRIu64 " - %" PRIu64 "", resultBuffer[0], resultBuffer[1]);
 
   // CPU_PERF_HINT
   auto cpu_clock_end = std::chrono::high_resolution_clock::now();
@@ -153,8 +144,6 @@ void RendererVk::retrieveTime()
   AdpfGpu::getInstance().setActualTotalDurationNanos(duration_ns);
 
   int64_t gpu_work_duration = result == VK_SUCCESS ? (int64_t) duration : last_gpu_duration_;
-  // int64_t gpu_work_duration = (int64_t) time;
-  // AdpfGpu::getInstance().reportGpuWorkDuration(gpu_work_duration);
   AdpfGpu::getInstance().setActualGpuDurationNanos(gpu_work_duration, true);
   AdpfGpu::getInstance().reportActualWorkDuration();
   last_gpu_duration_ = gpu_work_duration;
@@ -166,16 +155,12 @@ void RendererVk::retrieveTime()
 
 void RendererVk::StartQueryTimer()
 {
-  // TODO: GPU_PERF_HINT
-  // crashing
-  // Validation Error: [ VUID-vkCmdWriteTimestamp-commandBuffer-recording ] Object 0: handle = 0xb40000769e46e0d0, type = VK_OBJECT_TYPE_COMMAND_BUFFER; | MessageID = 0x272c38b3 | vkCmdWriteTimestamp():  was called before vkBeginCommandBuffer(). The Vulkan spec states: commandBuffer must be in the recording state (https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/vkspec.html#VUID-vkCmdWriteTimestamp-commandBuffer-recording)
-  // Validation Error: [ VUID-vkCmdWriteTimestamp-None-00830 ] Object 0: handle = 0xb40000769e466650, type = VK_OBJECT_TYPE_COMMAND_BUFFER; Object 1: handle = 0xa7c5450000000023, type = VK_OBJECT_TYPE_QUERY_POOL; | MessageID = 0xeb0b9b05 | vkCmdWriteTimestamp():  VkQueryPool 0xa7c5450000000023[] and query 2: query not reset. After query pool creation, each query must be reset before it is used. Queries must also be reset between uses. The Vulkan spec states: All queries used by the command must be unavailable (https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/vkspec.html#VUID-vkCmdWriteTimestamp-None-00830)
   if ( render_command_buffer_ == VK_NULL_HANDLE ) {
-    ALOGI("RendererVk::StartQueryTimer render_command_buffer is NULL");
+    ALOGE("RendererVk::StartQueryTimer render_command_buffer is NULL");
     return;
   }
   if ( query_pool_ == VK_NULL_HANDLE ) {
-    ALOGI("RendererVk::StartQueryTimer query_pool is NULL");
+    ALOGE("RendererVk::StartQueryTimer query_pool is NULL");
     return;
   }
 
@@ -189,42 +174,21 @@ void RendererVk::StartQueryTimer()
   // vkResetQueryPool(vk_.device, query_pool_, 0, 2);
   vkCmdResetQueryPool(render_command_buffer_, query_pool_, 0, 2);
 
-  ALOGI("RendererVk::StartQueryTimer about to call vkCmdWriteTimestamp");
   vkCmdWriteTimestamp(render_command_buffer_, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, query_pool_, 0);
-
-  //   RenderStateVk& state = *(static_cast<RenderStateVk*>(render_state_.get()));
-  // if (dirty_descriptor_set_) {
-  //   vkCmdBindDescriptorSets(render_command_buffer_, VK_PIPELINE_BIND_POINT_GRAPHICS,
-  //                           state.GetPipelineLayout(), 0, 1, &bound_descriptor_set_,
-  //                           0, nullptr);
-  //   dirty_descriptor_set_ = false;
-  // }
-
-  // // Update any uniform data that might have changed between draw calls
-  // state.UpdateUniformData(render_command_buffer_, true);
-
-  // vkCmdDraw(render_command_buffer_, vertex_count, 1, first_vertex, 0);
 }
 
 void RendererVk::EndQueryTimer()
 {
-  // TODO: GPU_PERF_HINT
-  // crashing
   if ( render_command_buffer_ == VK_NULL_HANDLE ) {
-    ALOGI("RendererVk::EndQueryTimer render_command_buffer is NULL");
+    ALOGE("RendererVk::EndQueryTimer render_command_buffer is NULL");
     return;
   }
   if ( query_pool_ == VK_NULL_HANDLE ) {
-    ALOGI("RendererVk::EndQueryTimer query_pool is NULL");
+    ALOGE("RendererVk::EndQueryTimer query_pool is NULL");
     return;
   }
 
-  ALOGI("RendererVk::EndQueryTimer about to call vkCmdWriteTimestamp");
   vkCmdWriteTimestamp(render_command_buffer_, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, query_pool_, 1);
-
-  // // Queries must be reset after each individual use
-  // vkResetQueryPool(vk_.device, query_pool_, 0, 2);
-
 }
 
 void RendererVk::BeginFrame(

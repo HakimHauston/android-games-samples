@@ -34,7 +34,6 @@
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 
-#include "common.hpp"
 #include "adpf_gpu.hpp"
 
 using namespace base_game_framework;
@@ -79,13 +78,6 @@ void RendererGLES::PrepareShutdown() {
   GLuint timeElapsed = 0;
   void RendererGLES::StartQueryTimer()
   {
-    //GLsizei N = 1;
-    // GLuint queries[N];
-    // GLuint available = 0;
-    // GLint disjointOccurred = 0;
-
-    ALOGI("RendererGLES::StartQueryTimer START");
-
     // CPU_PERF_HINT
     cpu_clock_start_ = std::chrono::high_resolution_clock::now();
     auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(cpu_clock_start_.time_since_epoch()).count();
@@ -104,14 +96,10 @@ void RendererGLES::PrepareShutdown() {
 
     /* Start query 1 */
     glBeginQuery(GL_TIME_ELAPSED_EXT, queries);
-
-    ALOGI("RendererGLES::StartQueryTimer END");
   }
 
   void RendererGLES::EndQueryTimer()
   {
-    ALOGI("RendererGLES::EndQueryTimer START");
-
     // CPU_PERF_HINT
     auto cpu_clock_end = std::chrono::high_resolution_clock::now();
     auto cpu_clock_past = cpu_clock_end - cpu_clock_start_;
@@ -137,41 +125,10 @@ void RendererGLES::PrepareShutdown() {
     /* If a disjoint operation occurred, all timer queries in between
         the last two disjoint checks that were filled are invalid, continue
         without reading the the values */
-    // ALOGI("RendererGLES::EndQueryTimer disjointOccured: %d", disjointOccurred);
-
     glGetQueryObjectuiv(queries, GL_QUERY_RESULT, &timeElapsed);
 
     int64_t workDuration = disjointOccurred ? last_gpu_duration_ : ((int64_t)timeElapsed);
 
-    //ALOGI("RendererGLES::EndQueryTimer disjointOccured: %d, timeElapsed %d", disjointOccurred, timeElapsed);
-
-//     if (!disjointOccurred) {
-//         glGetQueryObjectuiv(queries, GL_QUERY_RESULT, &timeElapsed);
-//         ALOGI("RendererGLES::EndQueryTimer timeElapsed %d", timeElapsed);
-
-// //        for (int i = 0; i < N; i++) {
-// //            /* See how much time the rendering of object i took in nanoseconds. */
-// //            //glGetQueryObjectui64vEXT(queries[i], GL_QUERY_RESULT, &timeElapsed);
-// //            glGetQueryObjectuiv(queries[i], GL_QUERY_RESULT, &timeElapsed);
-// //
-// //            /* Do something useful with the time if a disjoint operation did
-// //                not occur.  Note that care should be taken to use all
-// //                significant bits of the result, not just the least significant
-// //                32 bits. */
-// //            //AdjustObjectLODBasedOnDrawTime(i, timeElapsed);
-// //            ALOGI("RendererGLES::EndQueryTimer timeElapsed %d => %d", i, timeElapsed);
-// //        }
-
-//     }
-
-    // https://registry.khronos.org/OpenGL/extensions/EXT/EXT_disjoint_timer_query.txt
-    // This example is sub-optimal in that it stalls at the end of every
-    // frame to wait for query results.  Ideally, the collection of results
-    // would be delayed one frame to minimize the amount of time spent
-    // waiting for the GPU to finish rendering.
-
-    ALOGI("RendererGLES::EndQueryTimer disjointOccured %d, timeElapsed %d %" PRId64 " last_gpu_duration_ %" PRId64 "", disjointOccurred, timeElapsed, workDuration, last_gpu_duration_);
-    // AdpfGpu::getInstance().reportGpuWorkDuration(workDuration);
     AdpfGpu::getInstance().setActualGpuDurationNanos(workDuration, false);
     AdpfGpu::getInstance().reportActualWorkDuration();
     last_gpu_duration_ = workDuration;
@@ -179,8 +136,6 @@ void RendererGLES::PrepareShutdown() {
     DisplayManager& display_manager = DisplayManager::GetInstance();
     int64_t swapchainInterval = display_manager.GetSwapchainInterval();
     AdpfGpu::getInstance().updateTargetWorkDuration(swapchainInterval);
-
-    ALOGI("RendererGLES::EndQueryTimer END %" PRIu64 "", workDuration);
   }
 
 bool RendererGLES::GetFeatureAvailable(const RendererFeature feature) {
