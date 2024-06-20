@@ -96,6 +96,8 @@ RendererVk::RendererVk() :
     display_manager.GetSwapchainFrameResourcesVk(frame_handle, swap_, false);
   }
 
+  last_gpu_duration_ = 0;
+
   testQueryTimer();
 }
 
@@ -150,7 +152,7 @@ void RendererVk::retrieveTime()
   // vkGetQueryPoolResults(); device, queryPool, queryCount = 2, firstQuery, pData, dataSize, stride, flags
   std::array<uint64_t, 2> resultBuffer;
   vkDeviceWaitIdle(vk_.device);
-  vkGetQueryPoolResults(vk_.device, query_pool_, 0, 2, sizeof(uint64_t) * resultBuffer.size(), resultBuffer.data(), sizeof(uint64_t), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
+  VkResult result = vkGetQueryPoolResults(vk_.device, query_pool_, 0, 2, sizeof(uint64_t) * resultBuffer.size(), resultBuffer.data(), sizeof(uint64_t), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
 
   // based on:
   // https://github.com/nxp-imx/gtec-demo-framework/blob/master/DemoApps/Vulkan/GpuTimestamp/source/GpuTimestamp.cpp
@@ -170,11 +172,12 @@ void RendererVk::retrieveTime()
   AdpfGpu::getInstance().setActualCpuDurationNanos(duration_ns);
   AdpfGpu::getInstance().setActualTotalDurationNanos(duration_ns);
 
-  int64_t gpu_work_duration = (int64_t) duration;
+  int64_t gpu_work_duration = result == VK_SUCCESS ? (int64_t) duration : last_gpu_duration_;
   // int64_t gpu_work_duration = (int64_t) time;
   // AdpfGpu::getInstance().reportGpuWorkDuration(gpu_work_duration);
   AdpfGpu::getInstance().setActualGpuDurationNanos(gpu_work_duration, true);
   AdpfGpu::getInstance().reportActualWorkDuration();
+  last_gpu_duration_ = gpu_work_duration;
 
   DisplayManager& display_manager = DisplayManager::GetInstance();
   int64_t swapchainInterval = display_manager.GetSwapchainInterval();

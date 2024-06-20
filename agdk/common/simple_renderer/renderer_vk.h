@@ -183,6 +183,8 @@ class RendererVk : public Renderer {
   VkImageView bound_image_view_;
   bool dirty_descriptor_set_;
 
+  int64_t last_gpu_duration_;
+
   VkCommandPool command_pool_;
   std::vector<VkCommandBuffer> command_buffers_;
   std::vector<VkDescriptorPool> descriptor_pools_;
