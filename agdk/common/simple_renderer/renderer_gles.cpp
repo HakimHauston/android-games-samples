@@ -71,6 +71,7 @@ RendererGLES::RendererGLES() {
   // Call BeginFrame to make sure the context is set in case the user starts creating resources
   // immediately after initialization
   first_call_ = true;
+  last_gpu_duration_ = 0;
   timestamp_query_available_ = GetFeatureAvailable(RendererFeature::kFeature_DisjointTimerQuery);
   BeginFrame(Renderer::GetSwapchainHandle());
 }
@@ -244,6 +245,9 @@ void RendererGLES::listFeaturesAvailable() {
     // ALOGI("RendererGLES::EndQueryTimer disjointOccured: %d", disjointOccurred);
 
     glGetQueryObjectuiv(queries, GL_QUERY_RESULT, &timeElapsed);
+
+    int64_t workDuration = disjointOccurred ? last_gpu_duration_ : ((int64_t)timeElapsed);
+
     //ALOGI("RendererGLES::EndQueryTimer disjointOccured: %d, timeElapsed %d", disjointOccurred, timeElapsed);
 
 //     if (!disjointOccurred) {
@@ -271,11 +275,11 @@ void RendererGLES::listFeaturesAvailable() {
     // would be delayed one frame to minimize the amount of time spent
     // waiting for the GPU to finish rendering.
 
-    int64_t workDuration = (int64_t) timeElapsed;
-    ALOGI("RendererGLES::EndQueryTimer disjointOccured: %d, timeElapsed %d %" PRId64 "", disjointOccurred, timeElapsed, workDuration);
+    ALOGI("RendererGLES::EndQueryTimer disjointOccured %d, timeElapsed %d %" PRId64 " last_gpu_duration_ %" PRId64 "", disjointOccurred, timeElapsed, workDuration, last_gpu_duration_);
     // AdpfGpu::getInstance().reportGpuWorkDuration(workDuration);
     AdpfGpu::getInstance().setActualGpuDurationNanos(workDuration, false);
     AdpfGpu::getInstance().reportActualWorkDuration();
+    last_gpu_duration_ = workDuration;
 
     DisplayManager& display_manager = DisplayManager::GetInstance();
     int64_t swapchainInterval = display_manager.GetSwapchainInterval();

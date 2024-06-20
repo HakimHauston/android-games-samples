@@ -105,6 +105,8 @@ class RendererGLES : public Renderer {
   EGLContext egl_context_;
   EGLDisplay egl_display_;
   EGLSurface egl_surface_;
+
+  int64_t last_gpu_duration_;
 };
 
 } // namespace simple_renderer
