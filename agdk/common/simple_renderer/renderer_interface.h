@@ -108,7 +108,6 @@ class Renderer {
  */
   virtual bool GetFeatureAvailable(const RendererFeature feature) = 0;
 
-  virtual void testQueryTimer() = 0;
   virtual void StartQueryTimer() = 0;
   virtual void EndQueryTimer() = 0;
 

@@ -292,7 +292,6 @@ void NativeEngine::DoFrame() {
 
     simple_renderer::Renderer& renderer = simple_renderer::Renderer::GetInstance();
     // + GPU_HINT_API
-    // renderer.testQueryTimer();
     // renderer.StartQueryTimer();
     renderer.BeginFrame(mSwapchainHandle);
 

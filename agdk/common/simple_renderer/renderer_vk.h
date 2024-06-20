@@ -63,7 +63,6 @@ class RendererVk : public Renderer {
   virtual bool GetFeatureAvailable(const RendererFeature feature);
 
   void retrieveTime();
-  virtual void testQueryTimer();
   virtual void StartQueryTimer();
   virtual void EndQueryTimer();
 
@@ -168,7 +167,6 @@ class RendererVk : public Renderer {
 
   // GPU_PERF_HINT
   std::chrono::time_point<std::chrono::high_resolution_clock> cpu_clock_start_;
-  VkCommandBuffer query_command_buffer_;
   VkQueryPool query_pool_;
   //VkBuffer query_buffer_;
 

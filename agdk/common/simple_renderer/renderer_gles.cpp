@@ -56,8 +56,6 @@ RendererGLES::RendererGLES() {
   egl_display_ = swapchain_frame_resources_gles.egl_display;
   egl_surface_ = swapchain_frame_resources_gles.egl_surface;
 
-  listFeaturesAvailable();
-
   // Call BeginFrame to make sure the context is set in case the user starts creating resources
   // immediately after initialization
   first_call_ = true;
@@ -74,99 +72,6 @@ void RendererGLES::PrepareShutdown() {
   render_state_ = nullptr;
   resources_.ProcessDeleteQueue();
 }
-
-void RendererGLES::listFeaturesAvailable() {
-  GLint extensionCount = 0;
-
-  glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
-  ALOGI("RendererGLES::listFeaturesAvailable extensionCount: %d", extensionCount);
-  for (GLint i = 0; i < extensionCount; i++) {
-    const GLubyte *extensionString = glGetStringi(GL_EXTENSIONS, i);
-    const char* extStr = reinterpret_cast<const char*>(extensionString);
-    ALOGI("RendererGLES extension found: %s", extStr);
-    // if (strcmp(reinterpret_cast<const char *>(extensionString), kAstcExtensionString) == 0) {
-    //   supported = true;
-    //   break;
-    // }
-  }
-}
-
-  void RendererGLES::testQueryTimer()
-  {
-    GLsizei N = 1;
-    GLuint queries[1]; // [N]
-    GLuint available = 0;
-    GLint disjointOccurred = 0;
-
-    ALOGI("RendererGLES::testQueryTimer");
-
-    /* Timer queries can contain more than 32 bits of data, so always
-        query them using the 64 bit types to avoid overflow */
-    GLuint timeElapsed = 0;
-
-    /* Create a query object. */
-    // glGenQueries (GLsizei n, GLuint *ids);
-    glGenQueries(N, queries);
-    
-    /* Clear disjoint error */
-    glGetIntegerv(GL_GPU_DISJOINT_EXT, &disjointOccurred);
-
-    /* Start query 1 */
-    glBeginQuery(GL_TIME_ELAPSED_EXT, queries[0]);
-
-    /* Draw object 1 */
-    //....
-
-    /* End query 1 */
-    glEndQuery(GL_TIME_ELAPSED_EXT);
-
-    //...
-
-    /* Start query N */
-    glBeginQuery(GL_TIME_ELAPSED_EXT, queries[N-1]);
-
-    /* Draw object N */
-    //....
-
-    /* End query N */
-    glEndQuery(GL_TIME_ELAPSED_EXT);
-
-    /* Wait for all results to become available */
-    while (!available) {
-        glGetQueryObjectuiv(queries[N-1], GL_QUERY_RESULT_AVAILABLE, &available);
-    }
-    
-    /* Check for disjoint operation for all queries within the last
-        disjoint check. This way we can only check disjoint once for all
-        queries between, and once the last is filled we know all previous
-        will have been filled as well */
-    glGetIntegerv(GL_GPU_DISJOINT_EXT, &disjointOccurred);
-    
-    /* If a disjoint operation occurred, all timer queries in between
-        the last two disjoint checks that were filled are invalid, continue
-        without reading the the values */
-    ALOGI("RendererGLES::testQueryTimer disjointOccured: %d", disjointOccurred);
-    if (!disjointOccurred) {
-        for (int i = 0; i < N; i++) {
-            /* See how much time the rendering of object i took in nanoseconds. */
-            //glGetQueryObjectui64vEXT(queries[i], GL_QUERY_RESULT, &timeElapsed);
-            glGetQueryObjectuiv(queries[i], GL_QUERY_RESULT, &timeElapsed);
-            
-            /* Do something useful with the time if a disjoint operation did
-                not occur.  Note that care should be taken to use all
-                significant bits of the result, not just the least significant
-                32 bits. */
-            //AdjustObjectLODBasedOnDrawTime(i, timeElapsed);
-            ALOGI("RendererGLES::testQueryTimer timeElapsed %d => %d", i, timeElapsed);
-        }
-    }
-
-    // https://registry.khronos.org/OpenGL/extensions/EXT/EXT_disjoint_timer_query.txt
-    // This example is sub-optimal in that it stalls at the end of every
-    // frame to wait for query results.  Ideally, the collection of results
-    // would be delayed one frame to minimize the amount of time spent
-    // waiting for the GPU to finish rendering.
-  }
 
   GLuint queries;
   GLuint available = 0;
