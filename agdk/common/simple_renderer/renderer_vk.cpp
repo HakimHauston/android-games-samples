@@ -136,17 +136,6 @@ bool RendererVk::GetFeatureAvailable(const RendererFeature feature) {
   return supported;
 }
 
-bool RendererVk::checkTimestampSupport()
-{
-  // // https://docs.vulkan.org/samples/latest/samples/api/timestamp_queries/README.html
-  // VkPhysicalDeviceLimits device_limits = vk_.physical_device->get_gpu().get_properties().limits;
-  // if ( device_limits.timestampPeriod == 0 ) {
-  //   ALOGI("RendererVk::checkTimestampSupport does not support TIMESTAMP");
-  // }
-  // ALOGI("RendererVk::checkTimestampSupport %d", device_limits.timestampPeriod);
-  return false;
-}
-
 void RendererVk::retrieveTime()
 {
   // vkGetQueryPoolResults(); device, queryPool, queryCount = 2, firstQuery, pData, dataSize, stride, flags

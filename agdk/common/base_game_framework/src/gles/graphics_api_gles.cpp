@@ -63,11 +63,6 @@ void GraphicsAPIGLES::QueryAvailability() {
   }
 }
 
-bool GraphicsAPIGLES::CheckTimestampSupport() {
-  // TODO: GPU_PERF_HINT
-  return false;
-}
-
 void GraphicsAPIGLES::QueryCapabilities() {
   egl_display_ = InitializeEGLDisplay();
   if (egl_display_ != EGL_NO_DISPLAY) {

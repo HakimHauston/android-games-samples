@@ -129,17 +129,6 @@ void GraphicsAPIVulkan::QueryAvailability() {
   }
 }
 
-bool GraphicsAPIVulkan::CheckTimestampSupport() {
-//  VkPhysicalDevice device = GetPhysicalDevice();
-//  VkPhysicalDeviceLimits device_limits = device->get_gpu().get_properties().limits;
-//  if (device_limits.timestampPeriod == 0)
-//  {
-//    return false;
-//  }
-//  return true;
-    return false;
-}
-
 void GraphicsAPIVulkan::QueryCapabilities() {
   use_physical_device_properties2_ = VulkanAPIUtils::GetUsePhysicalDeviceProperties2();
   // We need to create a temporary instance and surface in order to properly
