@@ -48,7 +48,7 @@ GraphicsAPIGLES::GraphicsAPIGLES()
   , egl_surface_(EGL_NO_SURFACE)
   , egl_context_(EGL_NO_CONTEXT)
   , srgb_framebuffer_support_(false) {
-    swapchain_interval_ = DisplayManager::kDisplay_Swap_Interval_240FPS;
+    swapchain_interval_ = DisplayManager::kDisplay_Swap_Interval_60FPS;
 }
 
 GraphicsAPIGLES::~GraphicsAPIGLES() {
