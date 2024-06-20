@@ -30,7 +30,7 @@ namespace base_game_framework {
 
 static constexpr DisplayManager::SwapchainFrameHandle kDefault_swapchain_handle = 1;
 
-bool GraphicsAPIVulkan::enable_validation_layers_ = true;
+bool GraphicsAPIVulkan::enable_validation_layers_ = false;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 messengerCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,

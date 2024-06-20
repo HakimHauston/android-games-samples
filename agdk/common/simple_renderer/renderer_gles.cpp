@@ -29,23 +29,13 @@
 #include <chrono>
 #include <inttypes.h>
 
-#include <android/log.h>
-
 // #include <EGL/egl.h>
 // #include <EGL/eglext.h>
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 
+#include "common.hpp"
 #include "adpf_gpu.hpp"
-
-#define ALOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__);
-#define ALOGW(...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__);
-#define ALOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__);
-#ifdef NDEBUG
-#define ALOGV(...)
-#else
-#define ALOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__);
-#endif
 
 using namespace base_game_framework;
 
