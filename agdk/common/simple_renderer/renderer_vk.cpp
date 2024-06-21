@@ -44,6 +44,7 @@ RendererVk& RendererVk::GetInstanceVk() {
 
 RendererVk::RendererVk() :
     staging_command_buffer_(VK_NULL_HANDLE),
+    query_command_buffer_(VK_NULL_HANDLE),
     render_command_buffer_(VK_NULL_HANDLE),
     active_extent_{0, 0},
     active_frame_pool_(VK_NULL_HANDLE),
@@ -87,6 +88,7 @@ RendererVk::RendererVk() :
 
   last_gpu_duration_ = 0;
 
+  testQueryTimer();
 }
 
 RendererVk::~RendererVk() {
@@ -151,6 +153,64 @@ void RendererVk::retrieveTime()
   DisplayManager& display_manager = DisplayManager::GetInstance();
   int64_t swapchainInterval = display_manager.GetSwapchainInterval();
   AdpfGpu::getInstance().updateTargetWorkDuration(swapchainInterval);
+}
+
+void RendererVk::testQueryTimer()
+{
+  // https://www.reddit.com/r/vulkan/comments/rn2k1d/vkcmdwritetimestamp_writes_the_same_time_before/?rdt=46277
+  // https://stackoverflow.com/questions/67358235/how-to-measure-execution-time-of-vulkan-pipeline
+  // https://github.com/nxp-imx/gtec-demo-framework/blob/master/DemoApps/Vulkan/GpuTimestamp/source/GpuTimestamp.cpp
+  ALOGI("RendererVk::testQueryTimer");
+
+  // To pay attention:
+  // VkPhysicalDeviceLimits::timestampComputeAndGraphics // must support
+  // VkPhysicalDeviceLimits::timestampPeriod => timestampPeriod is the number of nanoseconds required for a timestamp query to be incremented by 1.
+  
+  // vkCreateQueryPool(); VkQueryPoolCreateInfo::queryType = VK_QUERY_TYPE_TIMESTAMP
+  VkQueryPoolCreateInfo createInfo{};
+  createInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
+  createInfo.pNext = nullptr; // Optional
+  createInfo.flags = 0; // Reserved for future use, must be 0!
+
+  createInfo.queryType = VK_QUERY_TYPE_TIMESTAMP;
+  createInfo.queryCount = 2; // REVIEW
+  // createInfo.queryCount = mCommandBuffers.size() * 2; // REVIEW
+
+  // VkResult result = vkCreateQueryPool(mDevice, &createInfo, nullptr, &mTimeQueryPool);
+  // if (result != VK_SUCCESS)
+  // {
+  //     throw std::runtime_error("Failed to create time query pool!");
+  // }
+  VkResult result = vkCreateQueryPool(vk_.device, &createInfo, nullptr, &query_pool_);
+  if ( result == VK_SUCCESS ) {
+    ALOGI("RendererVk::testQueryTimer vkCreateQueryPool result SUCCESS: %d query_command_buffer_ %p", result, &query_command_buffer_);
+  } else {
+    ALOGI("RendererVk::testQueryTimer vkCreateQueryPool result FAILED: %d query_command_buffer_ %p", result, &query_command_buffer_);
+  }
+
+  // check if timestamps are supported
+
+  
+  
+  // vkGetQueryPoolResults(); device, queryPool, queryCount = 2, firstQuery, pData, dataSize, stride, flags
+  // flags: 
+  // VK_QUERY_RESULT_64_BIT, // use uint64_t instead of uint32_t to prevent overflow
+  // VK_QUERY_RESULT_WAIT_BIT, // CPU will wait until all queries are written
+  // VK_QUERY_RESULT_WITH_AVAILABILITY_BIT, // each frame you check if the value is available on the host and don’t issue new write command until you read previous so it’s quite possible that some frames may be missed
+  // in addition to query value a special availability value is written after the query value. The non-zero value means that the query is available.
+  // if nothing is said explicitly the size of the availability value is uint32_t. If VK_QUERY_RESULT_64_BIT is used the size of availability value is uint64_t.
+  // VK_QUERY_RESULT_PARTIAL_BIT // not used
+
+  // vkCmdWriteTimestamp(); // commandBuffer, pipelineStage, queryPool, query
+  // VkCommandBuffer
+  // VkPipelineStageFlagBits
+  // VkQueryPool
+  // uint32_t query
+  //// crashing //// vkCmdWriteTimestamp(render_command_buffer_, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, query_pool_, 0);
+  
+  // https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/vkCmdCopyQueryPoolResults.html
+  //// crashing //// vkCmdCopyQueryPoolResults(render_command_buffer_, query_pool_, 0, 1, query_buffer_, 0, 0, VK_QUERY_RESULT_64_BIT);
+
 }
 
 void RendererVk::StartQueryTimer()
