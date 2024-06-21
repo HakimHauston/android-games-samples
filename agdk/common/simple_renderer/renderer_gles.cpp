@@ -55,8 +55,6 @@ RendererGLES::RendererGLES() {
   egl_display_ = swapchain_frame_resources_gles.egl_display;
   egl_surface_ = swapchain_frame_resources_gles.egl_surface;
 
-  listFeaturesAvailable();
-
   // Call BeginFrame to make sure the context is set in case the user starts creating resources
   // immediately after initialization
   first_call_ = true;
@@ -72,22 +70,6 @@ void RendererGLES::PrepareShutdown() {
   render_pass_ = nullptr;
   render_state_ = nullptr;
   resources_.ProcessDeleteQueue();
-}
-
-void RendererGLES::listFeaturesAvailable() {
-  GLint extensionCount = 0;
-
-  glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
-  ALOGI("RendererGLES::listFeaturesAvailable extensionCount: %d", extensionCount);
-  for (GLint i = 0; i < extensionCount; i++) {
-    const GLubyte *extensionString = glGetStringi(GL_EXTENSIONS, i);
-    const char* extStr = reinterpret_cast<const char*>(extensionString);
-    ALOGI("RendererGLES extension found: %s", extStr);
-    // if (strcmp(reinterpret_cast<const char *>(extensionString), kAstcExtensionString) == 0) {
-    //   supported = true;
-    //   break;
-    // }
-  }
 }
 
   void RendererGLES::testQueryTimer()
