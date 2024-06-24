@@ -88,7 +88,7 @@ RendererVk::RendererVk() :
 
   last_gpu_duration_ = 0;
 
-  testQueryTimer();
+  SetupQueryTimer();
 }
 
 RendererVk::~RendererVk() {
@@ -155,12 +155,12 @@ void RendererVk::retrieveTime()
   AdpfGpu::getInstance().updateTargetWorkDuration(swapchainInterval);
 }
 
-void RendererVk::testQueryTimer()
+void RendererVk::SetupQueryTimer()
 {
   // https://www.reddit.com/r/vulkan/comments/rn2k1d/vkcmdwritetimestamp_writes_the_same_time_before/?rdt=46277
   // https://stackoverflow.com/questions/67358235/how-to-measure-execution-time-of-vulkan-pipeline
   // https://github.com/nxp-imx/gtec-demo-framework/blob/master/DemoApps/Vulkan/GpuTimestamp/source/GpuTimestamp.cpp
-  ALOGI("RendererVk::testQueryTimer");
+  ALOGI("RendererVk::SetupQueryTimer");
 
   // To pay attention:
   // VkPhysicalDeviceLimits::timestampComputeAndGraphics // must support
@@ -183,9 +183,9 @@ void RendererVk::testQueryTimer()
   // }
   VkResult result = vkCreateQueryPool(vk_.device, &createInfo, nullptr, &query_pool_);
   if ( result == VK_SUCCESS ) {
-    ALOGI("RendererVk::testQueryTimer vkCreateQueryPool result SUCCESS: %d query_command_buffer_ %p", result, &query_command_buffer_);
+    ALOGI("RendererVk::SetupQueryTimer vkCreateQueryPool result SUCCESS: %d query_command_buffer_ %p", result, &query_command_buffer_);
   } else {
-    ALOGI("RendererVk::testQueryTimer vkCreateQueryPool result FAILED: %d query_command_buffer_ %p", result, &query_command_buffer_);
+    ALOGI("RendererVk::SetupQueryTimer vkCreateQueryPool result FAILED: %d query_command_buffer_ %p", result, &query_command_buffer_);
   }
 
   // check if timestamps are supported

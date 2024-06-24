@@ -72,14 +72,14 @@ void RendererGLES::PrepareShutdown() {
   resources_.ProcessDeleteQueue();
 }
 
-  void RendererGLES::testQueryTimer()
+  void RendererGLES::SetupQueryTimer()
   {
     GLsizei N = 1;
     GLuint queries[1]; // [N]
     GLuint available = 0;
     GLint disjointOccurred = 0;
 
-    ALOGI("RendererGLES::testQueryTimer");
+    ALOGI("RendererGLES::SetupQueryTimer");
 
     /* Timer queries can contain more than 32 bits of data, so always
         query them using the 64 bit types to avoid overflow */
@@ -126,7 +126,7 @@ void RendererGLES::PrepareShutdown() {
     /* If a disjoint operation occurred, all timer queries in between
         the last two disjoint checks that were filled are invalid, continue
         without reading the the values */
-    ALOGI("RendererGLES::testQueryTimer disjointOccured: %d", disjointOccurred);
+    ALOGI("RendererGLES::SetupQueryTimer disjointOccured: %d", disjointOccurred);
     if (!disjointOccurred) {
         for (int i = 0; i < N; i++) {
             /* See how much time the rendering of object i took in nanoseconds. */
@@ -138,7 +138,7 @@ void RendererGLES::PrepareShutdown() {
                 significant bits of the result, not just the least significant
                 32 bits. */
             //AdjustObjectLODBasedOnDrawTime(i, timeElapsed);
-            ALOGI("RendererGLES::testQueryTimer timeElapsed %d => %d", i, timeElapsed);
+            ALOGI("RendererGLES::SetupQueryTimer timeElapsed %d => %d", i, timeElapsed);
         }
     }
 
