@@ -17,51 +17,54 @@
 #ifndef adpf_gpu_hpp
 #define adpf_gpu_hpp
 
+#include <android/performance_hint.h>
+
 #include "common.hpp"
 #include "display_manager.h"
 #include "system_event_manager.h"
 #include "user_input_manager.h"
-
-#include <android/performance_hint.h>
 
 using namespace base_game_framework;
 
 #define DEFAULT_TARGET_NS 16666666
 
 class AdpfGpu {
-    private:
-        AdpfGpu();
+ private:
+  AdpfGpu();
 
-        APerformanceHintManager *performance_hint_manager_;
-        APerformanceHintSession *performance_hint_session_;
-        AWorkDuration *work_duration_;
+  APerformanceHintManager *performance_hint_manager_;
+  APerformanceHintSession *performance_hint_session_;
+  AWorkDuration *work_duration_;
 
-        bool gpu_timestamp_period_set_;
-        float gpu_timestamp_period_;
-        int64_t target_work_duration_;
-    public:
-        ~AdpfGpu();
+  bool gpu_timestamp_period_set_;
+  float gpu_timestamp_period_;
+  int64_t target_work_duration_;
 
-        static AdpfGpu& getInstance() {
-            static AdpfGpu instance;
-            return instance;
-        }
+ public:
+  ~AdpfGpu();
 
-        int64_t getTargetWorkDuration() { return target_work_duration_; }
+  static AdpfGpu &getInstance() {
+    static AdpfGpu instance;
+    return instance;
+  }
 
-        void initializePerformanceHintManager(int32_t *thread_ids, size_t thread_size, int64_t target_work_duration = DEFAULT_TARGET_NS);
-        void uninitializePerformanceHintManager();
+  int64_t getTargetWorkDuration() { return target_work_duration_; }
 
-        void setGpuTimestampPeriod(float timestamp_period);
+  void initializePerformanceHintManager(
+      int32_t *thread_ids, size_t thread_size,
+      int64_t target_work_duration = DEFAULT_TARGET_NS);
+  void uninitializePerformanceHintManager();
 
-        void setWorkPeriodStartTimestampNanos(int64_t cpu_timestamp);
-        void setActualCpuDurationNanos(int64_t cpu_duration);
-        void setActualGpuDurationNanos(int64_t gpu_duration, bool apply_multiplier);
-        void setActualTotalDurationNanos(int64_t cpu_duration);
-        void updateTargetWorkDuration(int64_t target_work_duration);
-        void reportActualWorkDuration();
+  void setGpuTimestampPeriod(float timestamp_period);
 
-        // void reportGpuWorkDuration(int64_t work_duration);
+  void setWorkPeriodStartTimestampNanos(int64_t cpu_timestamp);
+  void setActualCpuDurationNanos(int64_t cpu_duration);
+  void setActualGpuDurationNanos(int64_t gpu_duration, bool apply_multiplier);
+  void setActualTotalDurationNanos(int64_t cpu_duration);
+  void updateTargetWorkDuration(int64_t target_work_duration);
+  void reportActualWorkDuration();
+
+  // void reportGpuWorkDuration(int64_t work_duration);
 };
 
 #endif

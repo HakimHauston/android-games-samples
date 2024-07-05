@@ -17,10 +17,11 @@
 #ifndef SIMPLERENDERER_GLES_H_
 #define SIMPLERENDERER_GLES_H_
 
+#include <EGL/egl.h>
+
 #include "renderer_interface.h"
 #include "renderer_resources.h"
-#include <EGL/egl.h>
-//#include <GLES3/gl3.h>
+// #include <GLES3/gl3.h>
 
 namespace simple_renderer {
 
@@ -40,13 +41,15 @@ class RendererGLES : public Renderer {
   virtual void EndQueryTimer();
 
   virtual void BeginFrame(
-      const base_game_framework::DisplayManager::SwapchainHandle swapchain_handle);
+      const base_game_framework::DisplayManager::SwapchainHandle
+          swapchain_handle);
   virtual void EndFrame();
 
   virtual void SwapchainRecreated();
 
   virtual void Draw(const uint32_t vertex_count, const uint32_t first_vertex);
-  virtual void DrawIndexed(const uint32_t index_count, const uint32_t first_index);
+  virtual void DrawIndexed(const uint32_t index_count,
+                           const uint32_t first_index);
 
   virtual void SetRenderPass(std::shared_ptr<RenderPass> render_pass);
   virtual void SetRenderState(std::shared_ptr<RenderState> render_state);
@@ -71,7 +74,8 @@ class RendererGLES : public Renderer {
 
   virtual std::shared_ptr<ShaderProgram> CreateShaderProgram(
       const ShaderProgram::ShaderProgramCreationParams& params);
-  virtual void DestroyShaderProgram(std::shared_ptr<ShaderProgram> shader_program);
+  virtual void DestroyShaderProgram(
+      std::shared_ptr<ShaderProgram> shader_program);
 
   virtual std::shared_ptr<Texture> CreateTexture(
       const Texture::TextureCreationParams& params);
@@ -79,7 +83,8 @@ class RendererGLES : public Renderer {
 
   virtual std::shared_ptr<UniformBuffer> CreateUniformBuffer(
       const UniformBuffer::UniformBufferCreationParams& params);
-  virtual void DestroyUniformBuffer(std::shared_ptr<UniformBuffer> uniform_buffer);
+  virtual void DestroyUniformBuffer(
+      std::shared_ptr<UniformBuffer> uniform_buffer);
 
   virtual std::shared_ptr<VertexBuffer> CreateVertexBuffer(
       const VertexBuffer::VertexBufferCreationParams& params);
@@ -108,6 +113,6 @@ class RendererGLES : public Renderer {
   int64_t last_gpu_duration_;
 };
 
-} // namespace simple_renderer
+}  // namespace simple_renderer
 
-#endif // SIMPLERENDERER_GLES_H_
+#endif  // SIMPLERENDERER_GLES_H_

@@ -15,11 +15,13 @@
  */
 
 #include "graphics_api_gles.h"
+
 #include "debug_manager.h"
 #include "platform_util_gles.h"
 namespace base_game_framework {
 
-static constexpr DisplayManager::SwapchainFrameHandle kDefault_swapchain_handle = 1;
+static constexpr DisplayManager::SwapchainFrameHandle
+    kDefault_swapchain_handle = 1;
 static constexpr uint32_t kMax_element_count = 20;
 // Just 'double buffer' for GLES
 static constexpr uint32_t kSwapchain_frame_count_gles = 2;
@@ -28,28 +30,28 @@ static constexpr DisplayManager::SwapchainPresentMode present_mode_gles =
     DisplayManager::kSwapchain_Present_Fifo;
 
 GraphicsAPIGLES::GraphicsAPIGLES()
-  : GraphicsAPIBase()
-  , api_status_(kGraphicsAPI_ObtainingAvailability)
-  , api_features_()
-  , display_changed_callback_(nullptr)
-  , display_changed_user_data_(nullptr)
-  , feature_flags_(DisplayManager::kNo_GLES_Support)
-  , swapchain_format_()
-  , swapchain_resolution_(0, 0, 0, DisplayManager::kDisplay_Orientation_Landscape)
-  // , swapchain_interval_(DisplayManager::kDisplay_Swap_Interval_60FPS)
-  , swapchain_frame_count_(0)
-  , swapchain_present_mode_(DisplayManager::kSwapchain_Present_Fifo)
-  , egl_config_(nullptr)
-  , egl_display_(EGL_NO_DISPLAY)
-  , egl_surface_(EGL_NO_SURFACE)
-  , egl_context_(EGL_NO_CONTEXT)
-  , srgb_framebuffer_support_(false) {
-    swapchain_interval_ = DisplayManager::kDisplay_Swap_Interval_60FPS;
+    : GraphicsAPIBase(),
+      api_status_(kGraphicsAPI_ObtainingAvailability),
+      api_features_(),
+      display_changed_callback_(nullptr),
+      display_changed_user_data_(nullptr),
+      feature_flags_(DisplayManager::kNo_GLES_Support),
+      swapchain_format_(),
+      swapchain_resolution_(0, 0, 0,
+                            DisplayManager::kDisplay_Orientation_Landscape)
+      // , swapchain_interval_(DisplayManager::kDisplay_Swap_Interval_60FPS)
+      ,
+      swapchain_frame_count_(0),
+      swapchain_present_mode_(DisplayManager::kSwapchain_Present_Fifo),
+      egl_config_(nullptr),
+      egl_display_(EGL_NO_DISPLAY),
+      egl_surface_(EGL_NO_SURFACE),
+      egl_context_(EGL_NO_CONTEXT),
+      srgb_framebuffer_support_(false) {
+  swapchain_interval_ = DisplayManager::kDisplay_Swap_Interval_60FPS;
 }
 
-GraphicsAPIGLES::~GraphicsAPIGLES() {
-
-}
+GraphicsAPIGLES::~GraphicsAPIGLES() {}
 
 void GraphicsAPIGLES::QueryAvailability() {
   // early out
@@ -62,7 +64,8 @@ void GraphicsAPIGLES::QueryAvailability() {
 void GraphicsAPIGLES::QueryCapabilities() {
   egl_display_ = InitializeEGLDisplay();
   if (egl_display_ != EGL_NO_DISPLAY) {
-    srgb_framebuffer_support_ = PlatformUtilGLES::HasEGLExtension("EGL_KHR_gl_colorspace");
+    srgb_framebuffer_support_ =
+        PlatformUtilGLES::HasEGLExtension("EGL_KHR_gl_colorspace");
     eglInitialize(egl_display_, nullptr, nullptr);
 
     if (PlatformUtilGLES::CheckEGLError("Calling eglInitialize")) {
@@ -74,17 +77,19 @@ void GraphicsAPIGLES::QueryCapabilities() {
         egl_surface_ = InitializeEGLSurface(display_formats_[0]);
         if (egl_surface_ != EGL_NO_SURFACE) {
           // Grab our screen resolutions
-          PlatformUtilGLES::GetScreenResolutions(egl_display_, egl_surface_, display_resolutions_);
+          PlatformUtilGLES::GetScreenResolutions(egl_display_, egl_surface_,
+                                                 display_resolutions_);
           // Use Swappy to generate a list of refresh rates
           PlatformUtilGLES::GetRefreshRates(swap_intervals_);
 
           egl_context_ = InitializeEGLContext();
           if (egl_context_ != EGL_NO_CONTEXT) {
             // Bind the context
-            if (eglMakeCurrent(egl_display_, egl_surface_, egl_surface_, egl_context_)
-                  == EGL_TRUE) {
+            if (eglMakeCurrent(egl_display_, egl_surface_, egl_surface_,
+                               egl_context_) == EGL_TRUE) {
               // Setup the version and feature flags
-              const char *version_string = reinterpret_cast<const char *>(glGetString(GL_VERSION));
+              const char* version_string =
+                  reinterpret_cast<const char*>(glGetString(GL_VERSION));
               uint32_t version_flags = DisplayManager::kGLES_3_0_Support;
               if (version_string != nullptr) {
                 if (strstr(version_string, "3.2")) {
@@ -99,16 +104,18 @@ void GraphicsAPIGLES::QueryCapabilities() {
                   PlatformUtilGLES::GetPlatformFeatureFlags();
               feature_flags_ = static_cast<DisplayManager::GLESFeatureFlags>(
                   (version_flags | static_cast<uint32_t>(platform_flags)));
-              api_features_.SetGraphicsFeature(GraphicsAPIFeatures::kGraphicsFeature_Wide_Lines);
+              api_features_.SetGraphicsFeature(
+                  GraphicsAPIFeatures::kGraphicsFeature_Wide_Lines);
 
               DebugManager::Log(DebugManager::kLog_Channel_Default,
-                                DebugManager::kLog_Level_Info,
-                                BGM_CLASS_TAG,
-                                "GL_VERSION: %s Feature flags: 0x%x", version_string,
+                                DebugManager::kLog_Level_Info, BGM_CLASS_TAG,
+                                "GL_VERSION: %s Feature flags: 0x%x",
+                                version_string,
                                 static_cast<unsigned int>(feature_flags_));
 
               // Done with the queries, tear everything down
-              eglMakeCurrent(egl_display_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+              eglMakeCurrent(egl_display_, EGL_NO_SURFACE, EGL_NO_SURFACE,
+                             EGL_NO_CONTEXT);
             } else {
               PlatformUtilGLES::CheckEGLError("Calling eglMakeCurrent");
             }
@@ -128,9 +135,11 @@ void GraphicsAPIGLES::QueryCapabilities() {
   api_status_ = kGraphicsAPI_AvailabilityReady;
 }
 
-bool GraphicsAPIGLES::DisplayFormatExists(const DisplayManager::DisplayFormat& display_format) {
+bool GraphicsAPIGLES::DisplayFormatExists(
+    const DisplayManager::DisplayFormat& display_format) {
   // Config list is small, just do a linear search
-  for (auto iter = display_formats_.begin(); iter != display_formats_.end(); ++iter) {
+  for (auto iter = display_formats_.begin(); iter != display_formats_.end();
+       ++iter) {
     if (*iter == display_format) {
       return true;
     }
@@ -138,7 +147,7 @@ bool GraphicsAPIGLES::DisplayFormatExists(const DisplayManager::DisplayFormat& d
   return false;
 }
 
-const EGLint *GraphicsAPIGLES::GenerateEGLConfigAttribList(
+const EGLint* GraphicsAPIGLES::GenerateEGLConfigAttribList(
     const DisplayManager::DisplayFormat& display_format) {
   EGLint* attrib = new EGLint[kMax_element_count];
   // Set up defaults
@@ -148,7 +157,7 @@ const EGLint *GraphicsAPIGLES::GenerateEGLConfigAttribList(
   EGLint alpha_size = 0;
   EGLint depth_size = 0;
   EGLint stencil_size = 0;
-  EGLint *current_attrib = attrib;
+  EGLint* current_attrib = attrib;
 
   switch (display_format.display_pixel_format) {
     case DisplayManager::kDisplay_Pixel_Format_RGBA8:
@@ -169,7 +178,8 @@ const EGLint *GraphicsAPIGLES::GenerateEGLConfigAttribList(
       red_size = 5;
       green_size = 6;
       blue_size = 5;
-    default: break;
+    default:
+      break;
   }
 
   switch (display_format.display_depth_format) {
@@ -180,7 +190,8 @@ const EGLint *GraphicsAPIGLES::GenerateEGLConfigAttribList(
     case DisplayManager::kDisplay_Depth_Format_D24S8_Packed:
       depth_size = 24;
       break;
-    default: break;
+    default:
+      break;
   }
 
   switch (display_format.display_stencil_format) {
@@ -188,7 +199,8 @@ const EGLint *GraphicsAPIGLES::GenerateEGLConfigAttribList(
     case DisplayManager::kDisplay_Stencil_Format_D24S8_Packed:
       stencil_size = 8;
       break;
-    default: break;
+    default:
+      break;
   }
 
   *current_attrib++ = EGL_RENDERABLE_TYPE;
@@ -220,9 +232,9 @@ const EGLint *GraphicsAPIGLES::GenerateEGLConfigAttribList(
 
 /*
  * Get a list of display configurations for this display, iterate through the
- * GLES 3 capable configurations and check their color, depth and stencil formats.
- * Build a list of configs that have format configurations that match our
- * internal enums to present as options for display/swapchain initialization
+ * GLES 3 capable configurations and check their color, depth and stencil
+ * formats. Build a list of configs that have format configurations that match
+ * our internal enums to present as options for display/swapchain initialization
  */
 void GraphicsAPIGLES::ParseEGLConfigs() {
   EGLint config_count;
@@ -232,8 +244,7 @@ void GraphicsAPIGLES::ParseEGLConfigs() {
     eglGetConfigs(egl_display_, configs, config_count, &config_count);
 
     DebugManager::Log(DebugManager::kLog_Channel_Default,
-                      DebugManager::kLog_Level_Info,
-                      BGM_CLASS_TAG,
+                      DebugManager::kLog_Level_Info, BGM_CLASS_TAG,
                       "EGL config count: %d Feature flags: 0x%x", config_count);
 
     for (EGLint i = 0; i < config_count; ++i) {
@@ -241,19 +252,24 @@ void GraphicsAPIGLES::ParseEGLConfigs() {
       if (config != nullptr) {
         EGLint renderable_type = 0;
         EGLint surface_type = 0;
-        EGLBoolean renderable_result = eglGetConfigAttrib(egl_display_, config,
-                                                          EGL_RENDERABLE_TYPE, &renderable_type);
-        EGLBoolean surface_result = eglGetConfigAttrib(egl_display_, config,
-                                                       EGL_SURFACE_TYPE, &surface_type);
-        if (renderable_result == EGL_TRUE && ((renderable_type & EGL_OPENGL_ES3_BIT) != 0) &&
-            surface_result == EGL_TRUE && ((surface_type & EGL_WINDOW_BIT) != 0)) {
+        EGLBoolean renderable_result = eglGetConfigAttrib(
+            egl_display_, config, EGL_RENDERABLE_TYPE, &renderable_type);
+        EGLBoolean surface_result = eglGetConfigAttrib(
+            egl_display_, config, EGL_SURFACE_TYPE, &surface_type);
+        if (renderable_result == EGL_TRUE &&
+            ((renderable_type & EGL_OPENGL_ES3_BIT) != 0) &&
+            surface_result == EGL_TRUE &&
+            ((surface_type & EGL_WINDOW_BIT) != 0)) {
           bool validFormat = true;
           DisplayManager::DisplayFormat config_display_format;
-          config_display_format.display_depth_format = DisplayManager::kDisplay_Depth_Format_None;
+          config_display_format.display_depth_format =
+              DisplayManager::kDisplay_Depth_Format_None;
           config_display_format.display_stencil_format =
               DisplayManager::kDisplay_Stencil_Format_None;
-          config_display_format.display_pixel_format = DisplayManager::kDisplay_Pixel_Format_RGBA8;
-          config_display_format.display_color_space = DisplayManager::kDisplay_Color_Space_Linear;
+          config_display_format.display_pixel_format =
+              DisplayManager::kDisplay_Pixel_Format_RGBA8;
+          config_display_format.display_color_space =
+              DisplayManager::kDisplay_Color_Space_Linear;
 
           EGLint red_size = 0;
           EGLint green_size = 0;
@@ -261,15 +277,18 @@ void GraphicsAPIGLES::ParseEGLConfigs() {
           EGLint alpha_size = 0;
 
           // Require RGB channels to exist for this to be a useful config
-          EGLBoolean result = eglGetConfigAttrib(egl_display_, config, EGL_RED_SIZE, &red_size);
+          EGLBoolean result =
+              eglGetConfigAttrib(egl_display_, config, EGL_RED_SIZE, &red_size);
           if (result == EGL_FALSE || red_size == 0) {
             validFormat = false;
           }
-          result = eglGetConfigAttrib(egl_display_, config, EGL_GREEN_SIZE, &green_size);
+          result = eglGetConfigAttrib(egl_display_, config, EGL_GREEN_SIZE,
+                                      &green_size);
           if (result == EGL_FALSE || green_size == 0) {
             validFormat = false;
           }
-          result = eglGetConfigAttrib(egl_display_, config, EGL_BLUE_SIZE, &blue_size);
+          result = eglGetConfigAttrib(egl_display_, config, EGL_BLUE_SIZE,
+                                      &blue_size);
           if (result == EGL_FALSE || blue_size == 0) {
             validFormat = false;
           }
@@ -277,16 +296,20 @@ void GraphicsAPIGLES::ParseEGLConfigs() {
           eglGetConfigAttrib(egl_display_, config, EGL_ALPHA_SIZE, &alpha_size);
 
           // Check results against the RGBA configurations we care about
-          if (red_size == 4 && green_size == 4 && blue_size == 4 && alpha_size == 4) {
+          if (red_size == 4 && green_size == 4 && blue_size == 4 &&
+              alpha_size == 4) {
             config_display_format.display_pixel_format =
                 DisplayManager::kDisplay_Pixel_Format_RGBA4;
-          } else if (red_size == 5 && green_size == 6 && blue_size == 5 && alpha_size == 0) {
+          } else if (red_size == 5 && green_size == 6 && blue_size == 5 &&
+                     alpha_size == 0) {
             config_display_format.display_pixel_format =
                 DisplayManager::kDisplay_Pixel_Format_RGB565;
-          } else if (red_size == 5 && green_size == 5 && blue_size == 5 && alpha_size == 1) {
+          } else if (red_size == 5 && green_size == 5 && blue_size == 5 &&
+                     alpha_size == 1) {
             config_display_format.display_pixel_format =
                 DisplayManager::kDisplay_Pixel_Format_RGBA5551;
-          } else if (red_size == 8 && green_size == 8 && blue_size == 8 && alpha_size == 8) {
+          } else if (red_size == 8 && green_size == 8 && blue_size == 8 &&
+                     alpha_size == 8) {
             config_display_format.display_pixel_format =
                 DisplayManager::kDisplay_Pixel_Format_RGBA8;
           } else {
@@ -297,7 +320,8 @@ void GraphicsAPIGLES::ParseEGLConfigs() {
           EGLint depth_size = 0;
           EGLint stencil_size = 0;
           eglGetConfigAttrib(egl_display_, config, EGL_DEPTH_SIZE, &depth_size);
-          eglGetConfigAttrib(egl_display_, config, EGL_STENCIL_SIZE, &stencil_size);
+          eglGetConfigAttrib(egl_display_, config, EGL_STENCIL_SIZE,
+                             &stencil_size);
           if (depth_size == 24 && stencil_size == 8) {
             config_display_format.display_depth_format =
                 DisplayManager::kDisplay_Depth_Format_D24S8_Packed;
@@ -316,20 +340,20 @@ void GraphicsAPIGLES::ParseEGLConfigs() {
           }
 
           DebugManager::Log(DebugManager::kLog_Channel_Default,
-                            DebugManager::kLog_Level_Info,
-                            BGM_CLASS_TAG,
-                            "EGL format rgba,d,s: %d %d %d %d - %d %d", red_size, green_size,
-                            blue_size, alpha_size, depth_size, stencil_size);
+                            DebugManager::kLog_Level_Info, BGM_CLASS_TAG,
+                            "EGL format rgba,d,s: %d %d %d %d - %d %d",
+                            red_size, green_size, blue_size, alpha_size,
+                            depth_size, stencil_size);
 
           if (validFormat) {
-            // Add config to our array of available display formats, if it hasn't
-            // already been added
+            // Add config to our array of available display formats, if it
+            // hasn't already been added
             if (!GraphicsAPIGLES::DisplayFormatExists(config_display_format)) {
               display_formats_.push_back(config_display_format);
               // Add sRGB variant for RGB8/RGBA8 if sRGB available
               if (srgb_framebuffer_support_) {
                 if (config_display_format.display_pixel_format ==
-                        DisplayManager::kDisplay_Pixel_Format_RGBA8) {
+                    DisplayManager::kDisplay_Pixel_Format_RGBA8) {
                   config_display_format.display_color_space =
                       DisplayManager::kDisplay_Color_Space_SRGB;
                   display_formats_.push_back(config_display_format);
@@ -347,8 +371,9 @@ void GraphicsAPIGLES::ParseEGLConfigs() {
 EGLDisplay GraphicsAPIGLES::InitializeEGLDisplay() {
   EGLDisplay returnDisplay = nullptr;
   if (PlatformUtilGLES::GetPlatformDisplaySupported()) {
-    returnDisplay = PlatformUtilGLES::GetPlatformDisplay(PlatformUtilGLES::GetPlatformEnum(),
-                                          PlatformUtilGLES::GetNativeDisplay(), nullptr);
+    returnDisplay = PlatformUtilGLES::GetPlatformDisplay(
+        PlatformUtilGLES::GetPlatformEnum(),
+        PlatformUtilGLES::GetNativeDisplay(), nullptr);
     // fallback to eglGetDisplay
     if (returnDisplay == EGL_NO_DISPLAY) {
       returnDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
@@ -363,15 +388,17 @@ EGLDisplay GraphicsAPIGLES::InitializeEGLDisplay() {
 }
 
 EGLSurface GraphicsAPIGLES::InitializeEGLSurface(
-    const DisplayManager::DisplayFormat &display_format) {
+    const DisplayManager::DisplayFormat& display_format) {
   EGLSurface surface = EGL_NO_SURFACE;
   EGLNativeWindowType native_window = PlatformUtilGLES::GetNativeWindow();
   if (egl_display_ != EGL_NO_DISPLAY && native_window != nullptr) {
     const EGLint* attribs = GenerateEGLConfigAttribList(display_format);
     EGLint num_configs;
-    if (eglChooseConfig(egl_display_, attribs, &egl_config_, 1, &num_configs) == EGL_TRUE) {
+    if (eglChooseConfig(egl_display_, attribs, &egl_config_, 1, &num_configs) ==
+        EGL_TRUE) {
       // create EGL surface
-      surface = eglCreateWindowSurface(egl_display_, egl_config_, native_window, nullptr);
+      surface = eglCreateWindowSurface(egl_display_, egl_config_, native_window,
+                                       nullptr);
       if (surface == EGL_NO_SURFACE) {
         PlatformUtilGLES::CheckEGLError("eglCreateWindowSurface failed");
       }
@@ -385,7 +412,8 @@ EGLContext GraphicsAPIGLES::InitializeEGLContext() {
   EGLContext context = EGL_NO_CONTEXT;
   if (egl_display_ != EGL_NO_DISPLAY && egl_config_ != nullptr) {
     const EGLint context_attribs[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
-    context = eglCreateContext(egl_display_, egl_config_, nullptr, context_attribs);
+    context =
+        eglCreateContext(egl_display_, egl_config_, nullptr, context_attribs);
     PlatformUtilGLES::CheckEGLError("Calling eglCreateContext");
   }
   return context;
@@ -405,7 +433,8 @@ bool GraphicsAPIGLES::InitializeGraphicsAPI() {
 
 void GraphicsAPIGLES::ShutdownGraphicsAPI() {
   if (egl_display_ != EGL_NO_DISPLAY) {
-    eglMakeCurrent(egl_display_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    eglMakeCurrent(egl_display_, EGL_NO_SURFACE, EGL_NO_SURFACE,
+                   EGL_NO_CONTEXT);
     if (egl_context_ != EGL_NO_CONTEXT) {
       eglDestroyContext(egl_display_, egl_context_);
       egl_context_ = EGL_NO_CONTEXT;
@@ -421,12 +450,13 @@ void GraphicsAPIGLES::ShutdownGraphicsAPI() {
   api_status_ = kGraphicsAPI_AvailabilityReady;
 }
 
-DisplayManager::SwapchainConfigurations *GraphicsAPIGLES::GenerateSwapchainConfigurations() {
+DisplayManager::SwapchainConfigurations*
+GraphicsAPIGLES::GenerateSwapchainConfigurations() {
   DisplayManager::SwapchainConfigurations* swap_configs =
-      new DisplayManager::SwapchainConfigurations(display_formats_, display_resolutions_,
-                                                  swap_intervals_, kSwapchain_frame_count_gles,
-                                                  kSwapchain_frame_count_gles, present_mode_gles,
-                                                  DisplayManager::kDefault_Display);
+      new DisplayManager::SwapchainConfigurations(
+          display_formats_, display_resolutions_, swap_intervals_,
+          kSwapchain_frame_count_gles, kSwapchain_frame_count_gles,
+          present_mode_gles, DisplayManager::kDefault_Display);
   return swap_configs;
 }
 
@@ -445,8 +475,7 @@ void GraphicsAPIGLES::RestoreSurfaceGLES() {
     PlatformUtilGLES::RestoreSurface();
   } else {
     DebugManager::Log(DebugManager::kLog_Channel_Default,
-                      DebugManager::kLog_Level_Error,
-                      BGM_CLASS_TAG,
+                      DebugManager::kLog_Level_Error, BGM_CLASS_TAG,
                       "RestoreSurfaceGLES failed to create new EGLSurface");
   }
 }
@@ -457,11 +486,14 @@ DisplayManager::InitSwapchainResult GraphicsAPIGLES::InitSwapchain(
     const DisplayManager::DisplaySwapInterval display_swap_interval,
     const uint32_t swapchain_frame_count,
     const DisplayManager::SwapchainPresentMode present_mode) {
-  // Use frame_count as an 'initialized' flag, must be non-zero when swapchain is active
-  if (swapchain_frame_count_ == 0 && swapchain_frame_count == kSwapchain_frame_count_gles) {
+  // Use frame_count as an 'initialized' flag, must be non-zero when swapchain
+  // is active
+  if (swapchain_frame_count_ == 0 &&
+      swapchain_frame_count == kSwapchain_frame_count_gles) {
     swapchain_format_ = display_format;
     swapchain_resolution_ = display_resolution;
-    //swapchain_interval_ = display_swap_interval; // FORCE_FPS: disable dynamic fps 
+    // swapchain_interval_ = display_swap_interval; // FORCE_FPS: disable
+    // dynamic fps
     swapchain_frame_count_ = swapchain_frame_count;
     swapchain_present_mode_ = present_mode;
 
@@ -469,12 +501,14 @@ DisplayManager::InitSwapchainResult GraphicsAPIGLES::InitSwapchain(
     if (egl_surface_ != EGL_NO_SURFACE) {
       egl_context_ = InitializeEGLContext();
       if (egl_context_ != EGL_NO_CONTEXT) {
-        if (eglMakeCurrent(egl_display_, egl_surface_, egl_surface_, egl_context_) == EGL_TRUE) {
+        if (eglMakeCurrent(egl_display_, egl_surface_, egl_surface_,
+                           egl_context_) == EGL_TRUE) {
           if (PlatformUtilGLES::PlatformInitSwapchain(swapchain_interval_)) {
             return DisplayManager::kInit_Swapchain_Success;
           }
         }
-        eglMakeCurrent(egl_display_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+        eglMakeCurrent(egl_display_, EGL_NO_SURFACE, EGL_NO_SURFACE,
+                       EGL_NO_CONTEXT);
         eglDestroyContext(egl_display_, egl_context_);
         egl_context_ = EGL_NO_CONTEXT;
         eglDestroySurface(egl_display_, egl_surface_);
@@ -503,26 +537,29 @@ void GraphicsAPIGLES::ShutdownSwapchain() {
 }
 
 bool GraphicsAPIGLES::GetSwapchainValid() {
-  return (egl_context_ != EGL_NO_CONTEXT &&
-          egl_surface_ != EGL_NO_SURFACE &&
+  return (egl_context_ != EGL_NO_CONTEXT && egl_surface_ != EGL_NO_SURFACE &&
           egl_display_ != EGL_NO_DISPLAY);
 }
 
-DisplayManager::SwapchainFrameHandle GraphicsAPIGLES::GetCurrentSwapchainFrame() {
+DisplayManager::SwapchainFrameHandle
+GraphicsAPIGLES::GetCurrentSwapchainFrame() {
   return kDefault_swapchain_handle;
 }
 
-DisplayManager::SwapchainFrameHandle GraphicsAPIGLES::PresentCurrentSwapchainFrame() {
+DisplayManager::SwapchainFrameHandle
+GraphicsAPIGLES::PresentCurrentSwapchainFrame() {
   PlatformUtilGLES::PlatformPresentSwapchain(egl_display_, egl_surface_);
-  // Check for a screen resolution change at present time and fire the callback if registered
+  // Check for a screen resolution change at present time and fire the callback
+  // if registered
   if (PlatformUtilGLES::CheckScreenResolutionChange(egl_display_, egl_surface_,
                                                     swapchain_resolution_)) {
     if (display_changed_callback_) {
       static bool _called = false;
       if (!_called) {
         _called = true;
-        DisplayManager::DisplayChangeInfo change_info(swapchain_resolution_,
-    DisplayManager::kDisplay_Change_Window_Resized);
+        DisplayManager::DisplayChangeInfo change_info(
+            swapchain_resolution_,
+            DisplayManager::kDisplay_Change_Window_Resized);
         display_changed_callback_(change_info, display_changed_user_data_);
       }
     }
@@ -530,19 +567,20 @@ DisplayManager::SwapchainFrameHandle GraphicsAPIGLES::PresentCurrentSwapchainFra
   return kDefault_swapchain_handle;
 }
 
-bool GraphicsAPIGLES::GetGraphicsAPIResourcesGLES(GraphicsAPIResourcesGLES& api_resources_gles) {
+bool GraphicsAPIGLES::GetGraphicsAPIResourcesGLES(
+    GraphicsAPIResourcesGLES& api_resources_gles) {
   api_resources_gles.egl_context = egl_context_;
   return (egl_context_ != EGL_NO_CONTEXT);
 }
 
 bool GraphicsAPIGLES::GetSwapchainFrameResourcesGLES(
-                                    const DisplayManager::SwapchainFrameHandle frame_handle,
-                                    SwapchainFrameResourcesGLES& frame_resources) {
+    const DisplayManager::SwapchainFrameHandle frame_handle,
+    SwapchainFrameResourcesGLES& frame_resources) {
   bool valid_resources = false;
   if (frame_handle == kDefault_swapchain_handle) {
     frame_resources.egl_display = egl_display_;
     frame_resources.egl_surface = egl_surface_;
-    valid_resources =  true;
+    valid_resources = true;
   } else {
     frame_resources.egl_display = EGL_NO_DISPLAY;
     frame_resources.egl_surface = EGL_NO_SURFACE;
@@ -550,24 +588,25 @@ bool GraphicsAPIGLES::GetSwapchainFrameResourcesGLES(
   return valid_resources;
 }
 
-bool GraphicsAPIGLES::SetDisplayChangedCallback(DisplayManager::DisplayChangedCallback callback,
-                                                void* user_data) {
+bool GraphicsAPIGLES::SetDisplayChangedCallback(
+    DisplayManager::DisplayChangedCallback callback, void* user_data) {
   display_changed_callback_ = callback;
   display_changed_user_data_ = user_data;
   return true;
 }
 
-bool GraphicsAPIGLES::SetSwapchainChangedCallback(DisplayManager::SwapchainChangedCallback callback,
-                                                  void* user_data) {
+bool GraphicsAPIGLES::SetSwapchainChangedCallback(
+    DisplayManager::SwapchainChangedCallback callback, void* user_data) {
   swapchain_changed_callback_ = callback;
   swapchain_changed_user_data_ = user_data;
   return true;
 }
 
-void GraphicsAPIGLES::SwapchainChanged(const DisplayManager::SwapchainChangeMessage message) {
+void GraphicsAPIGLES::SwapchainChanged(
+    const DisplayManager::SwapchainChangeMessage message) {
   if (swapchain_changed_callback_ != nullptr) {
     swapchain_changed_callback_(message, swapchain_changed_user_data_);
   }
 }
 
-} // namespace base_game_framework
+}  // namespace base_game_framework

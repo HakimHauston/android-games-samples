@@ -17,11 +17,12 @@
 #ifndef SIMPLERENDERER_VK_H_
 #define SIMPLERENDERER_VK_H_
 
-#include "renderer_vk_includes.h"
+#include <unordered_map>
+
 #include "renderer_interface.h"
 #include "renderer_resources.h"
+#include "renderer_vk_includes.h"
 #include "vulkan/graphics_api_vulkan_resources.h"
-#include <unordered_map>
 
 namespace simple_renderer {
 
@@ -68,13 +69,15 @@ class RendererVk : public Renderer {
   virtual void EndQueryTimer();
 
   virtual void BeginFrame(
-      const base_game_framework::DisplayManager::SwapchainHandle swapchain_handle);
+      const base_game_framework::DisplayManager::SwapchainHandle
+          swapchain_handle);
   virtual void EndFrame();
 
   virtual void SwapchainRecreated();
 
   virtual void Draw(const uint32_t vertex_count, const uint32_t first_vertex);
-  virtual void DrawIndexed(const uint32_t index_count, const uint32_t first_index);
+  virtual void DrawIndexed(const uint32_t index_count,
+                           const uint32_t first_index);
 
   virtual void SetRenderPass(std::shared_ptr<RenderPass> render_pass);
   virtual void SetRenderState(std::shared_ptr<RenderState> render_state);
@@ -99,7 +102,8 @@ class RendererVk : public Renderer {
 
   virtual std::shared_ptr<ShaderProgram> CreateShaderProgram(
       const ShaderProgram::ShaderProgramCreationParams& params);
-  virtual void DestroyShaderProgram(std::shared_ptr<ShaderProgram> shader_program);
+  virtual void DestroyShaderProgram(
+      std::shared_ptr<ShaderProgram> shader_program);
 
   virtual std::shared_ptr<Texture> CreateTexture(
       const Texture::TextureCreationParams& params);
@@ -107,40 +111,50 @@ class RendererVk : public Renderer {
 
   virtual std::shared_ptr<UniformBuffer> CreateUniformBuffer(
       const UniformBuffer::UniformBufferCreationParams& params);
-  virtual void DestroyUniformBuffer(std::shared_ptr<UniformBuffer> uniform_buffer);
+  virtual void DestroyUniformBuffer(
+      std::shared_ptr<UniformBuffer> uniform_buffer);
 
   virtual std::shared_ptr<VertexBuffer> CreateVertexBuffer(
       const VertexBuffer::VertexBufferCreationParams& params);
   virtual void DestroyVertexBuffer(std::shared_ptr<VertexBuffer> vertex_buffer);
 
-  // Called by other vulkan renderer implementation classes, not exposed via the base interface
+  // Called by other vulkan renderer implementation classes, not exposed via the
+  // base interface
   VkDevice GetDevice() const { return RendererVk::vk_.device; }
-  VkPhysicalDevice GetPhysicalDevice() const { return RendererVk::vk_.physical_device; }
+  VkPhysicalDevice GetPhysicalDevice() const {
+    return RendererVk::vk_.physical_device;
+  }
   VkInstance GetInstance() const { return RendererVk::vk_.instance; }
   VmaAllocator GetAllocator() const { return RendererVk::vk_.allocator; }
-  const base_game_framework::SwapchainFrameResourcesVk& GetSwapchainResources() const {
+  const base_game_framework::SwapchainFrameResourcesVk& GetSwapchainResources()
+      const {
     return RendererVk::swap_;
   }
 
-  VkDescriptorSetLayout GetDescriptorSetLayout(const VertexBuffer::VertexFormat vertex_format);
+  VkDescriptorSetLayout GetDescriptorSetLayout(
+      const VertexBuffer::VertexFormat vertex_format);
 
   // Used for buffer/image copy staging operations, creates and submits a
   // temporary command buffer.
   VkCommandBuffer BeginStagingCommandBuffer();
   void EndStagingCommandBuffer();
 
-  VkCommandBuffer GetRenderCommandBuffer() const { return render_command_buffer_; };
+  VkCommandBuffer GetRenderCommandBuffer() const {
+    return render_command_buffer_;
+  };
   VkExtent2D GetActiveExtent() const { return active_extent_; }
 
-  VkFormat GetSwapchainColorFormat() const { return RendererVk::swap_.swapchain_color_format; }
+  VkFormat GetSwapchainColorFormat() const {
+    return RendererVk::swap_.swapchain_color_format;
+  }
   VkFormat GetSwapchainDepthStencilFormat() const {
-    return RendererVk::swap_.swapchain_depth_stencil_format; }
+    return RendererVk::swap_.swapchain_depth_stencil_format;
+  }
 
  protected:
   virtual void PrepareShutdown();
 
  private:
-
   // Descriptor information for the texture is going to be the same each frame,
   // cache rather than creating a new descriptor per draw for the same texture
   // (samplers are baked into our texture class)
@@ -197,6 +211,6 @@ class RendererVk : public Renderer {
   base_game_framework::SwapchainFrameResourcesVk swap_;
 };
 
-} // namespace simple_renderer
+}  // namespace simple_renderer
 
-#endif // SIMPLERENDERER_VK_H_
+#endif  // SIMPLERENDERER_VK_H_
