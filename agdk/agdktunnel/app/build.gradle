@@ -31,8 +31,8 @@ android {
     ndkVersion '27.0.11718014'
 
     defaultConfig {
-        applicationId 'com.google.sample.agdktunnel'
-        minSdkVersion 24
+        applicationId 'com.google.sample.agdktunnel.gles'
+        minSdkVersion 35
         targetSdkVersion 35
         versionCode     10
         versionName    '1.2'

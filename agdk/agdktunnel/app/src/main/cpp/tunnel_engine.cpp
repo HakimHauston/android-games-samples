@@ -55,6 +55,8 @@ TunnelEngine::TunnelEngine(struct android_app *app) : NativeEngine(app) {
 
   // Initialize the GNI runtime. This function needs to be called before any
   // call to the wrapper code (the VibrationHelper depends on this).
+  uint64_t jga = (uint64_t) &app->activity->javaGameActivity;
+  ALOGI("TunnelEngine::TunnelEngine %" PRIu64 "", jga);
   GniCore_init(app->activity->vm, app->activity->javaGameActivity);
 
   // Initialize the vibration helper, used to vibrate the device if supported
