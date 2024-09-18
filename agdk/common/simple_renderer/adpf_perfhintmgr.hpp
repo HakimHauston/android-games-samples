@@ -56,6 +56,9 @@ class AdpfPerfHintMgr {
       int64_t target_work_duration = DEFAULT_TARGET_NS);
   void uninitializePerformanceHintManager();
 
+  void setupQueryTimer();
+  static void timerCallback(void* user_data, int64_t cpu_time, int64_t gpu_time);
+
   void setGpuTimestampPeriod(float timestamp_period);
 
   void setWorkPeriodStartTimestampNanos(int64_t cpu_timestamp);

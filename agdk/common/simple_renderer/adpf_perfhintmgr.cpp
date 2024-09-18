@@ -23,6 +23,11 @@
 #include "android/platform_util_android.h"
 #include "common.hpp"
 
+#include "swappy/swappy_common.h"
+#include "swappy/swappyVk.h"
+
+#include "Log.h"
+
 using namespace base_game_framework;
 
 // verbose debug logs on?
@@ -72,6 +77,18 @@ void AdpfPerfHintMgr::uninitializePerformanceHintManager() {
   }
   performance_hint_manager_ = nullptr;
 #endif
+}
+
+void AdpfPerfHintMgr::setupQueryTimer() {
+  ALOGI("AdpfPerfHintMgr::setupQueryTimer");
+
+  SwappyTracer tracer = {};
+  tracer.postWait = timerCallback;
+  SwappyVk_injectTracer(&tracer);
+}
+
+void AdpfPerfHintMgr::timerCallback(void* user_data, int64_t cpu_time, int64_t gpu_time) {
+  ALOGI("AdpfPerfHintMgr::timerCallback %" PRId64 " %" PRId64 "",  cpu_time, gpu_time); // AdpfPerfHintMgr::timerCallback 10462321 174927
 }
 
 void AdpfPerfHintMgr::setGpuTimestampPeriod(float timestamp_period) {

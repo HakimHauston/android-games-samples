@@ -33,6 +33,8 @@
 #include "renderer_vertex_buffer_vk.h"
 #include "vulkan/graphics_api_vulkan.h"
 
+#include "simple_renderer/adpf_perfhintmgr.hpp"
+
 using namespace base_game_framework;
 
 namespace simple_renderer {
@@ -139,7 +141,7 @@ void RendererVk::retrieveTime() {
   // based on:
   // https://github.com/nxp-imx/gtec-demo-framework/blob/master/DemoApps/Vulkan/GpuTimestamp/source/GpuTimestamp.cpp
   const auto duration = resultBuffer[1] - resultBuffer[0];
-  ALOGI("RendererVk::retrieveTime resultBuffer[0] = %ld resultBuffer[1] = %ld", resultBuffer[0], resultBuffer[1]);
+  ALOGI("RendererVk::retrieveTime resultBuffer[0] = %" PRIu64 " resultBuffer[1] = %" PRIu64 "", resultBuffer[0], resultBuffer[1]);
   // RendererVk::retrieveTime resultBuffer[0] = 4761127458662 resultBuffer[1] = 4761127480129
   // VulkanExampleBase::retrieveTime resultBuffer[0] = 4785305971919 resultBuffer[1] = 4650372032262776361
 
@@ -204,6 +206,8 @@ void RendererVk::SetupQueryTimer() {
         "query_command_buffer_ %p",
         result, &query_command_buffer_);
   }
+
+  AdpfPerfHintMgr::getInstance().setupQueryTimer();
 }
 
 void RendererVk::StartQueryTimer() {
