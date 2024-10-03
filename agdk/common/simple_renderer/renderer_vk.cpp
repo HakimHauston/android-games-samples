@@ -152,8 +152,8 @@ void RendererVk::retrieveTime() {
       std::chrono::duration_cast<std::chrono::nanoseconds>(cpu_clock_past)
           .count();
   int64_t duration_ns = static_cast<int64_t>(cpu_clock_duration);
-  AdpfPerfHintMgr::getInstance().setActualCpuDurationNanos(duration_ns);
-  AdpfPerfHintMgr::getInstance().setActualTotalDurationNanos(duration_ns);
+  // AdpfPerfHintMgr::getInstance().setActualCpuDurationNanos(duration_ns);
+  // AdpfPerfHintMgr::getInstance().setActualTotalDurationNanos(duration_ns);
 
   int64_t gpu_work_duration =
       result == VK_SUCCESS ? (int64_t)duration : last_gpu_duration_;
@@ -167,13 +167,13 @@ void RendererVk::retrieveTime() {
     disjoint_count_ = 0;
   }
 
-  AdpfPerfHintMgr::getInstance().setActualGpuDurationNanos(gpu_work_duration, true);
-  AdpfPerfHintMgr::getInstance().reportActualWorkDuration();
+  // AdpfPerfHintMgr::getInstance().setActualGpuDurationNanos(gpu_work_duration, true);
+  // AdpfPerfHintMgr::getInstance().reportActualWorkDuration();
   last_gpu_duration_ = gpu_work_duration;
 
-  DisplayManager& display_manager = DisplayManager::GetInstance();
-  int64_t swapchainInterval = display_manager.GetSwapchainInterval();
-  AdpfPerfHintMgr::getInstance().updateTargetWorkDuration(swapchainInterval);
+  // DisplayManager& display_manager = DisplayManager::GetInstance();
+  // int64_t swapchainInterval = display_manager.GetSwapchainInterval();
+  // AdpfPerfHintMgr::getInstance().updateTargetWorkDuration(swapchainInterval);
 }
 
 void RendererVk::SetupQueryTimer() {
@@ -207,6 +207,9 @@ void RendererVk::SetupQueryTimer() {
         result, &query_command_buffer_);
   }
 
+  DisplayManager& display_manager = DisplayManager::GetInstance();
+  int64_t swapchainInterval = display_manager.GetSwapchainInterval();
+  AdpfPerfHintMgr::getInstance().updateTargetWorkDuration(swapchainInterval);
   AdpfPerfHintMgr::getInstance().setupQueryTimer();
 }
 
@@ -225,7 +228,7 @@ void RendererVk::StartQueryTimer() {
   auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(
                    cpu_clock_start_.time_since_epoch())
                    .count();
-  AdpfPerfHintMgr::getInstance().setWorkPeriodStartTimestampNanos(nanos);
+  // AdpfPerfHintMgr::getInstance().setWorkPeriodStartTimestampNanos(nanos);
 
   // Queries must be reset after each individual use
   // vkResetQueryPool(vk_.device, query_pool_, 0, 2);

@@ -89,6 +89,21 @@ void AdpfPerfHintMgr::setupQueryTimer() {
 
 void AdpfPerfHintMgr::timerCallback(void* user_data, int64_t cpu_time, int64_t gpu_time) {
   ALOGI("AdpfPerfHintMgr::timerCallback %" PRId64 " %" PRId64 "",  cpu_time, gpu_time); // AdpfPerfHintMgr::timerCallback 10462321 174927
+
+  std::chrono::time_point<std::chrono::high_resolution_clock> clock_start = std::chrono::high_resolution_clock::now();
+  auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                  clock_start.time_since_epoch())
+                  .count();
+  AdpfPerfHintMgr::getInstance().setWorkPeriodStartTimestampNanos(nanos);
+
+  AdpfPerfHintMgr::getInstance().setActualCpuDurationNanos(cpu_time);
+  AdpfPerfHintMgr::getInstance().setActualGpuDurationNanos(gpu_time, false);
+  AdpfPerfHintMgr::getInstance().setActualTotalDurationNanos(cpu_time + gpu_time);
+  AdpfPerfHintMgr::getInstance().reportActualWorkDuration();
+
+  // DisplayManager& display_manager = DisplayManager::GetInstance();
+  // int64_t swapchainInterval = display_manager.GetSwapchainInterval();
+  // AdpfPerfHintMgr::getInstance().updateTargetWorkDuration(swapchainInterval);
 }
 
 void AdpfPerfHintMgr::setGpuTimestampPeriod(float timestamp_period) {

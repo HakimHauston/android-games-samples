@@ -20,6 +20,7 @@
 
 #include <chrono>
 
+#include "adpf_perfhintmgr.hpp"
 #include "display_manager.h"
 #include "gles/graphics_api_gles_resources.h"
 #include "renderer_debug.h"
@@ -151,6 +152,11 @@ void RendererGLES::SetupQueryTimer() {
   // frame to wait for query results.  Ideally, the collection of results
   // would be delayed one frame to minimize the amount of time spent
   // waiting for the GPU to finish rendering.
+
+  DisplayManager& display_manager = DisplayManager::GetInstance();
+  int64_t swapchainInterval = display_manager.GetSwapchainInterval();
+  AdpfPerfHintMgr::getInstance().updateTargetWorkDuration(swapchainInterval);
+  AdpfPerfHintMgr::getInstance().setupQueryTimer();
 }
 
 GLuint queries;
@@ -163,7 +169,7 @@ void RendererGLES::StartQueryTimer() {
   auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(
                    cpu_clock_start_.time_since_epoch())
                    .count();
-  AdpfPerfHintMgr::getInstance().setWorkPeriodStartTimestampNanos(nanos);
+  // AdpfPerfHintMgr::getInstance().setWorkPeriodStartTimestampNanos(nanos);
 
   /* Timer queries can contain more than 32 bits of data, so always
       query them using the 64 bit types to avoid overflow */
@@ -188,8 +194,8 @@ void RendererGLES::EndQueryTimer() {
       std::chrono::duration_cast<std::chrono::nanoseconds>(cpu_clock_past)
           .count();
   int64_t duration_ns = static_cast<int64_t>(cpu_clock_duration);
-  AdpfPerfHintMgr::getInstance().setActualCpuDurationNanos(duration_ns);
-  AdpfPerfHintMgr::getInstance().setActualTotalDurationNanos(duration_ns);
+  // AdpfPerfHintMgr::getInstance().setActualCpuDurationNanos(duration_ns);
+  // AdpfPerfHintMgr::getInstance().setActualTotalDurationNanos(duration_ns);
 
   /* End query N */
   glEndQuery(GL_TIME_ELAPSED_EXT);
@@ -222,13 +228,13 @@ void RendererGLES::EndQueryTimer() {
     disjoint_count_ = 0;
   }
 
-  AdpfPerfHintMgr::getInstance().setActualGpuDurationNanos(workDuration, false);
-  AdpfPerfHintMgr::getInstance().reportActualWorkDuration();
+  // AdpfPerfHintMgr::getInstance().setActualGpuDurationNanos(workDuration, false);
+  // AdpfPerfHintMgr::getInstance().reportActualWorkDuration();
   last_gpu_duration_ = workDuration;
 
-  DisplayManager& display_manager = DisplayManager::GetInstance();
-  int64_t swapchainInterval = display_manager.GetSwapchainInterval();
-  AdpfPerfHintMgr::getInstance().updateTargetWorkDuration(swapchainInterval);
+  // DisplayManager& display_manager = DisplayManager::GetInstance();
+  // int64_t swapchainInterval = display_manager.GetSwapchainInterval();
+  // AdpfPerfHintMgr::getInstance().updateTargetWorkDuration(swapchainInterval);
 }
 
 bool RendererGLES::GetFeatureAvailable(const RendererFeature feature) {
