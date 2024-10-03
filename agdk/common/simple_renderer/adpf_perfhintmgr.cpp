@@ -24,6 +24,8 @@
 #include "common.hpp"
 
 #include "swappy/swappy_common.h"
+#include "swappy/swappyGL.h"
+#include "swappy/swappyGL_extra.h"
 #include "swappy/swappyVk.h"
 
 #include "Log.h"
@@ -84,7 +86,11 @@ void AdpfPerfHintMgr::setupQueryTimer() {
 
   SwappyTracer tracer = {};
   tracer.postWait = timerCallback;
-  SwappyVk_injectTracer(&tracer);
+  if ( SwappyGL_isEnabled() ) {
+    SwappyGL_injectTracer(&tracer);
+  } else {
+    SwappyVk_injectTracer(&tracer);
+  }
 }
 
 void AdpfPerfHintMgr::timerCallback(void* user_data, int64_t cpu_time, int64_t gpu_time) {

@@ -24,6 +24,8 @@
 #include "android/platform_util_android.h"
 #include "simple_renderer/renderer_interface.h"
 
+#include "swappy/swappyGL.h"
+
 using namespace base_game_framework;
 
 // verbose debug logs on?
@@ -83,6 +85,16 @@ NativeEngine::NativeEngine(struct android_app *app) {
         // we are starting with previously saved state -- restore it
         mState = *(struct NativeEngineSavedState *) app->savedState;
     }
+
+    // Initialize Swappy to adjuest swap timing properly.
+    if ( s_disable_vulkan ) {
+        ALOGI("Calling SwappyGL_init");
+        SwappyGL_init(GetJniEnv(), mApp->activity->javaGameActivity);
+        SwappyGL_setSwapIntervalNS(SWAPPY_SWAP_60FPS);
+    }
+
+    VLOGD("NativeEngine: querying API level.");
+    ALOGI("NativeEngine: Density %d", mScreenDensity);
 }
 
 NativeEngine::~NativeEngine() {

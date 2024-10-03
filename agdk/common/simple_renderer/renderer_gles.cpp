@@ -67,6 +67,8 @@ RendererGLES::RendererGLES() {
   timestamp_query_available_ =
       GetFeatureAvailable(RendererFeature::kFeature_DisjointTimerQuery);
   BeginFrame(Renderer::GetSwapchainHandle());
+
+  SetupQueryTimer();
 }
 
 RendererGLES::~RendererGLES() {}
@@ -145,6 +147,11 @@ void RendererGLES::SetupQueryTimer() {
       ALOGI("RendererGLES::SetupQueryTimer timeElapsed %d => %d", i,
             timeElapsed);
     }
+
+    DisplayManager& display_manager = DisplayManager::GetInstance();
+    int64_t swapchainInterval = display_manager.GetSwapchainInterval();
+    AdpfPerfHintMgr::getInstance().updateTargetWorkDuration(swapchainInterval);
+    AdpfPerfHintMgr::getInstance().setupQueryTimer();
   }
 
   // https://registry.khronos.org/OpenGL/extensions/EXT/EXT_disjoint_timer_query.txt
