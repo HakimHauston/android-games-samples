@@ -17,24 +17,23 @@
 #ifndef BASEGAMEFRAMEWORK_GRAPHICSAPI_VULKAN_H_
 #define BASEGAMEFRAMEWORK_GRAPHICSAPI_VULKAN_H_
 
-#include "platform_defines.h"
-
 #include <cstdint>
 #include <functional>
 #include <memory>
 #include <optional>
 #include <vector>
-#include "volk.h"
-#include "vk_mem_alloc.h"
+
 #include "graphics_api_base.h"
 #include "graphics_api_status.h"
 #include "graphics_api_vulkan_resources.h"
+#include "platform_defines.h"
+#include "vk_mem_alloc.h"
+#include "volk.h"
 
 namespace base_game_framework {
 
 class GraphicsAPIVulkan : public GraphicsAPIBase {
  public:
-
   struct QueueFamilyIndices {
     std::optional<uint32_t> graphics_family;
     std::optional<uint32_t> present_family;
@@ -74,9 +73,13 @@ class GraphicsAPIVulkan : public GraphicsAPIBase {
   GraphicsAPIVulkan(const GraphicsAPIVulkan &) = delete;
   GraphicsAPIVulkan &operator=(const GraphicsAPIVulkan &) = delete;
 
-  virtual DisplayManager::GraphicsAPI GetAPI() const { return DisplayManager::kGraphicsAPI_Vulkan; }
+  virtual DisplayManager::GraphicsAPI GetAPI() const {
+    return DisplayManager::kGraphicsAPI_Vulkan;
+  }
   virtual GraphicsAPIStatus GetAPIStatus() const { return api_status_; }
-  virtual const GraphicsAPIFeatures &GetAPIFeatures() const { return api_features_; }
+  virtual const GraphicsAPIFeatures &GetAPIFeatures() const {
+    return api_features_;
+  }
 
   virtual uint32_t GetFeatureFlags() const { return feature_flags_; }
 
@@ -85,15 +88,17 @@ class GraphicsAPIVulkan : public GraphicsAPIBase {
   virtual bool InitializeGraphicsAPI();
   virtual void ShutdownGraphicsAPI();
 
-  virtual bool SetDisplayChangedCallback(DisplayManager::DisplayChangedCallback callback,
-                                         void *user_data);
+  virtual bool SetDisplayChangedCallback(
+      DisplayManager::DisplayChangedCallback callback, void *user_data);
 
-  virtual bool SetSwapchainChangedCallback(DisplayManager::SwapchainChangedCallback callback,
-                                           void *user_data);
+  virtual bool SetSwapchainChangedCallback(
+      DisplayManager::SwapchainChangedCallback callback, void *user_data);
 
-  virtual void SwapchainChanged(const DisplayManager::SwapchainChangeMessage message);
+  virtual void SwapchainChanged(
+      const DisplayManager::SwapchainChangeMessage message);
 
-  virtual DisplayManager::SwapchainConfigurations *GenerateSwapchainConfigurations();
+  virtual DisplayManager::SwapchainConfigurations *
+  GenerateSwapchainConfigurations();
   virtual DisplayManager::InitSwapchainResult InitSwapchain(
       const DisplayManager::DisplayFormat &display_format,
       const DisplayManager::DisplayResolution &display_resolution,
@@ -109,16 +114,17 @@ class GraphicsAPIVulkan : public GraphicsAPIBase {
 
   bool GetGraphicsAPIResourcesVk(GraphicsAPIResourcesVk &api_resources_vk);
 
-  bool GetSwapchainFrameResourcesVk(const DisplayManager::SwapchainFrameHandle frame_handle,
-                                    SwapchainFrameResourcesVk &frame_resources,
-                                    bool acquire_frame_image);
+  bool GetSwapchainFrameResourcesVk(
+      const DisplayManager::SwapchainFrameHandle frame_handle,
+      SwapchainFrameResourcesVk &frame_resources, bool acquire_frame_image);
 
   static void SetValidationLayersEnabled(bool enable) {
     GraphicsAPIVulkan::enable_validation_layers_ = enable;
   }
 
  private:
-  bool CreateDevice(bool is_preflight_check, const QueueFamilyIndices &queue_indices);
+  bool CreateDevice(bool is_preflight_check,
+                    const QueueFamilyIndices &queue_indices);
   void DestroyDevice();
 
   void CreateInstance(bool is_preflight_check);
@@ -140,9 +146,12 @@ class GraphicsAPIVulkan : public GraphicsAPIBase {
   void QuerySurfaceCapabilities();
   void DetermineAPILevel(const uint32_t api_version,
                          const uint32_t device_api_version);
-  void DetermineNumericSupport(VkBool32 shader_int16,
-                               const VkPhysicalDeviceShaderFloat16Int8FeaturesKHR &shader_float_16_int_8_features,
-                               const VkPhysicalDevice16BitStorageFeaturesKHR &device_16_bit_storage_features);
+  void DetermineNumericSupport(
+      VkBool32 shader_int16,
+      const VkPhysicalDeviceShaderFloat16Int8FeaturesKHR
+          &shader_float_16_int_8_features,
+      const VkPhysicalDevice16BitStorageFeaturesKHR
+          &device_16_bit_storage_features);
 
   bool DisplayFormatExists(const DisplayManager::DisplayFormat &display_format);
 
@@ -163,7 +172,6 @@ class GraphicsAPIVulkan : public GraphicsAPIBase {
   uint32_t present_queue_index_;
   DisplayManager::DisplayFormat swapchain_format_;
   DisplayManager::DisplayResolution swapchain_resolution_;
-  DisplayManager::DisplaySwapInterval swapchain_interval_;
   uint32_t swapchain_min_frames_;
   uint32_t swapchain_max_frames_;
   uint32_t swapchain_present_modes_;
@@ -198,6 +206,6 @@ class GraphicsAPIVulkan : public GraphicsAPIBase {
   static bool enable_validation_layers_;
 };
 
-}
+}  // namespace base_game_framework
 
-#endif //BASEGAMEFRAMEWORK_GRAPHICSAPI_VULKAN_H_
+#endif  // BASEGAMEFRAMEWORK_GRAPHICSAPI_VULKAN_H_
