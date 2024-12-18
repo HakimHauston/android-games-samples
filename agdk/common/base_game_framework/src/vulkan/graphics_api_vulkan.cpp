@@ -15,6 +15,9 @@
  */
 
 #include "graphics_api_vulkan.h"
+
+#include "simple_renderer/adpf_perfhintmgr.hpp"
+
 #include "debug_manager.h"
 #include "graphics_api_vulkan_utils.h"
 #include "platform_util_vulkan.h"
@@ -223,6 +226,11 @@ void GraphicsAPIVulkan::QueryDeviceCapabilities(VkPhysicalDevice physical_device
                       "No vkGetPhysicalDeviceProperties2/KHR functions");
     return;
   }
+
+  // + GPU_PERF_HINT
+  AdpfPerfHintMgr::getInstance().setGpuTimestampPeriod(
+      device_properties.properties.limits.timestampPeriod);
+  // - GPU_PERF_HINT
 
   if (has_driver_properties) {
     driver_id_ = device_driver_properties.driverID;
@@ -812,9 +820,19 @@ bool GraphicsAPIVulkan::CreateDevice(bool is_preflight_check,
   device_create_info.pEnabledFeatures = &device_features;
   device_create_info.enabledExtensionCount =
       static_cast<uint32_t>(required_device_extensions.size());
-  device_create_info.ppEnabledExtensionNames = required_device_extensions.data();
+  device_create_info.ppEnabledExtensionNames =
+      required_device_extensions.data();
 
-  std::vector<const char *> validation_layers = PlatformUtilVulkan::GetValidationLayers();
+  // + GPU_HINT_API
+  VkPhysicalDeviceHostQueryResetFeatures resetFeatures;
+  resetFeatures.sType =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES;
+  resetFeatures.pNext = nullptr;
+  resetFeatures.hostQueryReset = VK_TRUE;
+  device_create_info.pNext = &resetFeatures;
+
+  std::vector<const char *> validation_layers =
+      PlatformUtilVulkan::GetValidationLayers();
   if (enable_validation) {
     device_create_info.enabledLayerCount =
         static_cast<uint32_t>(validation_layers.size());

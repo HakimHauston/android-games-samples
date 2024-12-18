@@ -206,8 +206,12 @@ class DisplayManager {
 
   /** @brief Enum of possible display frame swap intervals */
   enum DisplaySwapInterval : uint64_t {
+    /** 240 frames per second swap interval */
+    kDisplay_Swap_Interval_240FPS = 4166666L,
     /** 165 frames per second swap interval */
     kDisplay_Swap_Interval_165FPS = 6060606L,
+    /** 144 frames per second swap interval */
+    kDisplay_Swap_Interval_144FPS = 6944444L,
     /** 120 frames per second swap interval */
     kDisplay_Swap_Interval_120FPS = 8333333L,
     /** 90 frames per second swap interval */
@@ -619,6 +623,10 @@ class DisplayManager {
  * @param change_message A `DisplayChangeMessage` enum with the change message
  */
   void HandlePlatformDisplayChange(const DisplayChangeMessage& change_message);
+
+  /**
+   */
+  DisplayManager::DisplaySwapInterval GetSwapchainInterval();
 
  private:
   DisplayManager();

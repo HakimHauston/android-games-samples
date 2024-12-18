@@ -31,6 +31,9 @@ class GraphicsAPIBase {
  public:
   virtual DisplayManager::GraphicsAPI GetAPI() const = 0;
   virtual GraphicsAPIStatus GetAPIStatus() const { return kGraphicsAPI_Uninitialized; }
+  virtual DisplayManager::DisplaySwapInterval GetSwapchainInterval() const {
+    return swapchain_interval_;
+  }
   virtual const GraphicsAPIFeatures& GetAPIFeatures() const = 0;
 
   virtual void QueryAvailability() = 0;
@@ -62,6 +65,8 @@ class GraphicsAPIBase {
 
  protected:
   GraphicsAPIBase() {}
+
+  DisplayManager::DisplaySwapInterval swapchain_interval_;
 };
 
 } // base_game_framework
